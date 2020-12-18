@@ -12,7 +12,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="django-generic-api-permissions",
-    version="0.0.0",
+    version="0.1.0",
     author="adfinis",
     description="Generic API permissions and visibilities for Django",
     long_description=long_description,
