@@ -16,6 +16,7 @@ setup(
     author="adfinis",
     description="Generic API permissions and visibilities for Django",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/adfinis-sygroup/django-generic-api-permissions",
     license="License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
     packages=["generic_permissions"],
