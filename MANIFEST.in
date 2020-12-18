@@ -1,0 +1,7 @@
+include CHANGELOG.md
+include LICENSE
+recursive-include tests *
+include tox.ini
+include manage.py
+global-exclude *.py[co]
+global-exclude __pycache__
