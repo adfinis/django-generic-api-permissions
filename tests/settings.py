@@ -9,6 +9,7 @@ INSTALLED_APPS = (
 
 GENERIC_PERMISSIONS_PERMISSION_CLASSES = ["generic_permissions.permissions.AllowAny"]
 GENERIC_PERMISSIONS_VISIBILITY_CLASSES = ["generic_permissions.visibilities.Any"]
+GENERIC_PERMISSIONS_VALIDATION_CLASSES = ["generic_permissions.validations.PassThrough"]
 
 ROOT_URLCONF = "tests.urls"
 

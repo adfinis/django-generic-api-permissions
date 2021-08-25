@@ -1,9 +1,13 @@
-class PermissionSerializerMixin:
-    def validate(self, *args, **kwargs):
-        validated_data = super().validate(*args, **kwargs)
+from warnings import warn  # pragma: no cover
 
-        self.Meta.model.check_permissions(self.context["request"])
-        if self.instance is not None:
-            self.instance.check_object_permissions(self.context["request"])
 
-        return validated_data
+class PermissionSerializerMixin:  # pragma: no cover
+    def __init__(self, *args, **kwargs):
+        warn(
+            DeprecationWarning(
+                "PermissionSerializerMixin is not required anymore. You "
+                "only need to decorate your viewsets now, using "
+                "generic_permissions.permissions.PermissionViewMixin."
+            )
+        )
+        super().__init__(*args, **kwargs)
