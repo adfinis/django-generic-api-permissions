@@ -1,5 +1,5 @@
 import pytest
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.urls import reverse
 from rest_framework.status import (
     HTTP_200_OK,
@@ -8,21 +8,15 @@ from rest_framework.status import (
     HTTP_403_FORBIDDEN,
 )
 
-from generic_permissions.models import PermissionModelMixin
+from generic_permissions.config import ObjectPermissionsConfig, PermissionsConfig
 from generic_permissions.permissions import (
-    BasePermission,
+    DenyAll,
     object_permission_for,
     permission_for,
 )
+from tests.views import Test1ViewSet, Test2ViewSet
 
 from .models import Model1, Model2
-
-
-@pytest.fixture
-def reset_permission_classes():
-    before = PermissionModelMixin.permission_classes
-    yield
-    PermissionModelMixin.permission_classes = before
 
 
 @pytest.mark.parametrize(
@@ -41,25 +35,29 @@ def test_permission(
     method,
     status,
     use_admin_client,
-    reset_permission_classes,
 ):
     client = admin_client if use_admin_client else client
 
-    class CustomPermission(BasePermission):
+    class CustomPermission:
         @permission_for(Model1)
         def has_permission_for_document(self, request):
-            if request.user.username == "admin" or request.data["text"] == "baz":
+            if (
+                hasattr(request, "user")
+                and request.user.username == "admin"
+                or request.data["text"] == "baz"
+            ):
                 return True
             return False
 
         @object_permission_for(Model1)
         def has_object_permission_for_document(self, request, instance):
             assert isinstance(instance, Model1)
-            if request.user.username == "admin":
+            if hasattr(request, "user") and request.user.username == "admin":
                 return True
             return False
 
-    PermissionModelMixin.permission_classes = [CustomPermission]
+    PermissionsConfig.register_handler_class(CustomPermission)
+    ObjectPermissionsConfig.register_handler_class(CustomPermission)
 
     tm = Model1.objects.create(text="foo")
 
@@ -89,18 +87,8 @@ def test_permission(
         assert tm.text == "baz"
 
 
-def test_permission_no_permissions_configured(client, reset_permission_classes):
-    PermissionModelMixin.permission_classes = None
-
-    data = {"text": "foo"}
-
-    url = reverse("model1-list")
-    with pytest.raises(ImproperlyConfigured):
-        client.post(url, data=data)
-
-
 def test_custom_permission_override_has_permission_with_duplicates():
-    class CustomPermission(BasePermission):
+    class CustomPermission:
         @permission_for(Model1)
         def has_permission_for_custom_mutation(self, request):  # pragma: no cover
             return False
@@ -110,11 +98,11 @@ def test_custom_permission_override_has_permission_with_duplicates():
             return False
 
     with pytest.raises(ImproperlyConfigured):
-        CustomPermission()
+        PermissionsConfig.register_handler_class(CustomPermission)
 
 
 def test_custom_permission_override_has_object_permission_with_duplicates():
-    class CustomPermission(BasePermission):
+    class CustomPermission:
         @object_permission_for(Model1)
         def has_object_permission_for_custom_mutation(
             self, request, instance
@@ -128,40 +116,46 @@ def test_custom_permission_override_has_object_permission_with_duplicates():
             return False
 
     with pytest.raises(ImproperlyConfigured):
-        CustomPermission()
+        ObjectPermissionsConfig.register_handler_class(CustomPermission)
 
 
-def test_custom_permission_override_has_permission_with_multiple_models(request):
-    class CustomPermission(BasePermission):
+def test_custom_permission_override_has_permission_with_multiple_models(admin_client):
+    class CustomPermission:
         @permission_for(Model1)
         @permission_for(Model2)
-        def has_permission_for_both_mutations(self, request):  # pragma: no cover
+        def has_permission_for_both_mutations(self, request):
             return False
 
-    assert not CustomPermission().has_permission(Model1, request)
-    assert not CustomPermission().has_permission(Model2, request)
+    PermissionsConfig.register_handler_class(CustomPermission)
+
+    for model in Model1, Model2:
+        url = reverse(f"{model.__name__.lower()}-list")
+        resp = admin_client.post(url, data={"text": "foo"}, format="json")
+        assert resp.status_code == HTTP_403_FORBIDDEN
 
 
 def test_custom_permission_override_has_object_permission_with_multiple_mutations(
-    db, request
+    db, admin_client
 ):
-    class CustomPermission(BasePermission):
+    class CustomPermission:
         @object_permission_for(Model1)
-        @object_permission_for(Model2)
-        def has_object_permission_for_both_mutations(
-            self, request, instance
-        ):  # pragma: no cover
+        def has_object_permission_for_both_mutations(self, request, instance):
             return False
 
+    ObjectPermissionsConfig.register_handler_class(CustomPermission)
+
     tm1 = Model1.objects.create()
-    tm2 = Model1.objects.create()
 
-    assert not CustomPermission().has_object_permission(Model1, request, tm1)
-    assert not CustomPermission().has_object_permission(Model2, request, tm2)
+    url = reverse("model1-detail", args=[tm1.pk])
+    resp = admin_client.patch(url, data={"text": "foo"}, format="json")
+    assert resp.status_code == HTTP_403_FORBIDDEN
 
 
-def test_custom_permission_fallback_to_true(db, request):
-    class CustomPermission(BasePermission):
+def test_custom_permission_fallback_to_true(
+    db,
+    rf,
+):
+    class CustomPermission:
         @permission_for(Model2)
         def has_permission_for_document(self, request):  # pragma: no cover
             return False
@@ -173,6 +167,50 @@ def test_custom_permission_fallback_to_true(db, request):
             return False
 
     tm1 = Model1.objects.create()
+    ObjectPermissionsConfig.register_handler_class(CustomPermission)
+    PermissionsConfig.register_handler_class(CustomPermission)
 
-    assert CustomPermission().has_permission(Model1, request)
-    assert CustomPermission().has_object_permission(Model1, request, tm1)
+    request = rf.patch("")
+    request.data = {"text": "foo"}
+
+    Test1ViewSet(request=request, format_kwarg="json")._check_permissions(request)
+    Test1ViewSet(request=request, format_kwarg="json").check_object_permissions(
+        request, tm1
+    )
+
+
+def test_deny_all_permission(
+    db,
+    rf,
+):
+    class CustomPermission(DenyAll):
+        @permission_for(Model2)
+        def has_permission_for_document(self, request):
+            return True
+
+        @object_permission_for(Model2)
+        def has_object_permission_for_both_mutations(self, request, instance):
+            return True
+
+    tm1 = Model1.objects.create()
+    tm2 = Model2.objects.create()
+    ObjectPermissionsConfig.register_handler_class(CustomPermission)
+    PermissionsConfig.register_handler_class(CustomPermission)
+
+    request = rf.patch("")
+    request.data = {"text": "foo"}
+
+    # Model2 access should be granted by above permission class
+    Test2ViewSet(request=request, format_kwarg="json")._check_permissions(request)
+    Test2ViewSet(request=request, format_kwarg="json").check_object_permissions(
+        request, tm2
+    )
+
+    # Model1 access should "bubble up" to the DenyAll base class and be denied
+    with pytest.raises(PermissionDenied):
+        Test1ViewSet(request=request, format_kwarg="json")._check_permissions(request)
+
+    with pytest.raises(PermissionDenied):
+        Test1ViewSet(request=request, format_kwarg="json").check_object_permissions(
+            request, tm1
+        )

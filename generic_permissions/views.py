@@ -1,17 +1,25 @@
-from django.http import HttpResponse
+from warnings import warn  # pragma: no cover
+
+from generic_permissions import permissions, visibilities  # pragma: no cover
 
 
-class PermissionViewMixin:
-    def destroy(self, request, *args, **kwargs):
-        self.queryset.model.check_permissions(request)
-        instance = self.get_object()
-        instance.check_object_permissions(request)
-        # we do not call `super()` in order to not fetch the object twice.
-        self.perform_destroy(instance)
-        return HttpResponse(status=204)
+class VisibilityViewMixin(visibilities.VisibilityViewMixin):  # pragma: no cover
+    def __init__(self, *args, **kwargs):
+        warn(
+            DeprecationWarning(
+                "VisibilityViewMixin has moved from generic_permissions.views "
+                "to generic_permissions.visibilities. Please update your imports"
+            )
+        )
+        super().__init__(*args, **kwargs)
 
 
-class VisibilityViewMixin:
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.model.visibility_queryset_filter(queryset, self.request)
+class PermissionViewMixin(permissions.PermissionViewMixin):  # pragma: no cover
+    def __init__(self, *args, **kwargs):
+        warn(
+            DeprecationWarning(
+                "PermissionViewMixin has moved from generic_permissions.views "
+                "to generic_permissions.permissions. Please update your imports"
+            )
+        )
+        super().__init__(*args, **kwargs)

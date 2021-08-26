@@ -3,23 +3,16 @@ from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
-from generic_permissions.visibilities import BaseVisibility, Union, filter_queryset_for
+from generic_permissions.config import VisibilitiesConfig
+from generic_permissions.visibilities import Union, filter_queryset_for
 
-from .models import BaseModel, Model1, Model2, VisibilityModelMixin
-
-
-@pytest.fixture
-def reset_visibilities():
-    before = VisibilityModelMixin.visibility_classes
-    yield
-    VisibilityModelMixin.visibility_classes = before
+from .models import BaseModel, Model1, Model2
 
 
 @pytest.mark.parametrize("detail", [True, False])
 @pytest.mark.parametrize("use_admin_client", [True, False])
 def test_visibility(
     db,
-    reset_visibilities,
     admin_user,
     admin_client,
     client,
@@ -28,14 +21,14 @@ def test_visibility(
 ):
     client = admin_client if use_admin_client else client
 
-    class TestVisibility(BaseVisibility):
+    class TestVisibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_document(self, queryset, request):
             if request.user.username != "admin":
                 return queryset.none()
             return queryset.exclude(text="bar")
 
-    VisibilityModelMixin.visibility_classes = [TestVisibility]
+    VisibilitiesConfig.register_handler_class(TestVisibility)
 
     model1 = Model1.objects.create(text="foo")
     Model1.objects.create(text="bar")
@@ -59,16 +52,8 @@ def test_visibility(
         assert result["text"] == "foo"
 
 
-def test_visibility_no_visibilities_configured(reset_visibilities, client):
-    VisibilityModelMixin.visibility_classes = None
-
-    url = reverse("model1-list")
-    with pytest.raises(ImproperlyConfigured):
-        client.get(url)
-
-
-def test_visibility_dupes(reset_visibilities, client):
-    class TestVisibility(BaseVisibility):
+def test_visibility_dupes(client):
+    class TestVisibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_document(self, queryset, request):  # pragma: no cover
             return queryset
@@ -77,24 +62,21 @@ def test_visibility_dupes(reset_visibilities, client):
         def filter_queryset_for_document2(self, queryset, request):  # pragma: no cover
             return queryset
 
-    VisibilityModelMixin.visibility_classes = [TestVisibility]
-
-    url = reverse("model1-list")
     with pytest.raises(ImproperlyConfigured):
-        client.get(url)
+        VisibilitiesConfig.register_handler_class(TestVisibility)
 
 
-def test_custom_visibility_for_basemodel(reset_visibilities, db, client):
+def test_custom_visibility_for_basemodel(db, client):
     """Test fallback to BaseModel."""
     Model1.objects.create(text="m1")
     Model1.objects.create(text="m2")
 
-    class CustomVisibility(BaseVisibility):
+    class CustomVisibility:
         @filter_queryset_for(BaseModel)
         def filter_queryset_for_all(self, queryset, request):
             return queryset.none()
 
-    VisibilityModelMixin.visibility_classes = [CustomVisibility]
+    VisibilitiesConfig.register_handler_class(CustomVisibility)
 
     assert Model1.objects.count() == 2
 
@@ -106,32 +88,33 @@ def test_custom_visibility_for_basemodel(reset_visibilities, db, client):
     assert result == []
 
 
-def test_custom_visibility_override_specificity(db):
+def test_custom_visibility_override_specificity(db, admin_client):
     """The first matching filter 'wins'."""
     Model1.objects.create(text="m1")
     Model1.objects.create(text="m2")
 
-    class CustomVisibility(BaseVisibility):
+    class CustomVisibility:
         @filter_queryset_for(BaseModel)
         def filter_queryset_for_all(self, queryset, request):
-            return queryset.none()
+            return queryset.none()  # pragma: no cover
 
         @filter_queryset_for(Model1)
         def filter_queryset_for_document(self, queryset, request):
             return queryset.filter(text="m1")
 
     assert Model1.objects.count() == 2
-    queryset = CustomVisibility().filter_queryset(BaseModel, Model1.objects, None)
-    assert queryset.count() == 0
-    queryset = CustomVisibility().filter_queryset(Model1, Model1.objects, None)
-    assert queryset.count() == 1
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(CustomVisibility)
+
+    assert len(admin_client.get(reverse("model1-list")).json()) == 1
 
 
-def test_custom_visibility_chained_decorators(db):
-    class CustomVisibility(BaseVisibility):
+def test_custom_visibility_chained_decorators(admin_client, db):
+    class CustomVisibility:
         @filter_queryset_for(BaseModel)
         def filter_queryset_for_all(self, queryset, request):
-            return queryset.none()
+            return queryset.none()  # pragma: no cover
 
         @filter_queryset_for(Model1)
         @filter_queryset_for(Model2)
@@ -145,31 +128,31 @@ def test_custom_visibility_chained_decorators(db):
 
     assert Model1.objects.count() == 2
     assert Model2.objects.count() == 2
-    queryset = CustomVisibility().filter_queryset(BaseModel, Model1.objects, None)
-    assert queryset.count() == 0
-    queryset = CustomVisibility().filter_queryset(Model1, Model1.objects, None)
-    assert queryset.count() == 1
-    queryset = CustomVisibility().filter_queryset(Model2, Model2.objects, None)
-    assert queryset.count() == 1
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(CustomVisibility)
+
+    assert len(admin_client.get(reverse("model1-list")).json()) == 1
+    assert len(admin_client.get(reverse("model2-list")).json()) == 1
 
 
-def test_union_visibility(db):
+def test_union_visibility(db, admin_client):
     Model1.objects.create(text="m1")
     Model1.objects.create(text="m2")
     Model1.objects.create(text="m3")
     Model1.objects.create(text="m4")
 
-    class Name1Visibility(BaseVisibility):
+    class Name1Visibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_custom_node(self, queryset, request):
             return queryset.filter(text="m1")
 
-    class Name2Visibility(BaseVisibility):
+    class Name2Visibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_custom_node(self, queryset, request):
             return queryset.filter(text="m2")
 
-    class Name3Visibility(BaseVisibility):
+    class Name3Visibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_custom_node(self, queryset, request):
             return queryset.filter(text__in=["m2", "m3"])
@@ -177,27 +160,34 @@ def test_union_visibility(db):
     class ConfiguredUnion(Union):
         visibility_classes = [Name1Visibility, Name2Visibility, Name3Visibility]
 
-    queryset = Model1.objects
-    result = Name1Visibility().filter_queryset(Model1, queryset, None)
-    assert result.count() == 1
-    result = Name2Visibility().filter_queryset(Model1, queryset, None)
-    assert result.count() == 1
-    result = Name3Visibility().filter_queryset(Model1, queryset, None)
-    assert result.count() == 2
-    queryset = ConfiguredUnion().filter_queryset(Model1, queryset, None)
-    assert queryset.count() == 3
-    assert queryset.get(text="m2")
+    url = reverse("model1-list")
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(Name1Visibility)
+    assert len(admin_client.get(url).json()) == 1
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(Name2Visibility)
+    assert len(admin_client.get(url).json()) == 1
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(Name3Visibility)
+    assert len(admin_client.get(url).json()) == 2
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(ConfiguredUnion)
+    assert len(admin_client.get(url).json()) == 3
 
 
-def test_union_visibility_none(db):
+def test_union_visibility_none(db, admin_client):
     Model1.objects.create(text="m1")
 
-    class CustomVisibility(BaseVisibility):
+    class CustomVisibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_custom_node(self, queryset, request):
             return queryset.none()
 
-    class CustomVisibility2(BaseVisibility):
+    class CustomVisibility2:
         @filter_queryset_for(Model1)
         def filter_queryset_for_custom_node(self, queryset, request):
             return queryset.none()
@@ -205,10 +195,16 @@ def test_union_visibility_none(db):
     class ConfiguredUnion(Union):
         visibility_classes = [CustomVisibility2, CustomVisibility]
 
-    queryset = Model1.objects
-    result = CustomVisibility().filter_queryset(Model1, queryset, None)
-    assert result.count() == 0
-    result = CustomVisibility2().filter_queryset(Model1, queryset, None)
-    assert result.count() == 0
-    queryset = ConfiguredUnion().filter_queryset(Model1, queryset, None)
-    assert queryset.count() == 0
+    url = reverse("model1-list")
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(CustomVisibility)
+    assert len(admin_client.get(url).json()) == 0
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(CustomVisibility2)
+    assert len(admin_client.get(url).json()) == 0
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(ConfiguredUnion)
+    assert len(admin_client.get(url).json()) == 0
