@@ -14,3 +14,4 @@ GENERIC_PERMISSIONS_VALIDATION_CLASSES = ["generic_permissions.validations.PassT
 ROOT_URLCONF = "tests.urls"
 
 SECRET_KEY = "foobar"
+USE_TZ = True
