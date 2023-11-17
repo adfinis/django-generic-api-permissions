@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -28,6 +27,16 @@ class Migration(migrations.Migration):
                         help_text="Text description.",
                         max_length=100,
                         verbose_name="Text comes here",
+                    ),
+                ),
+                (
+                    "model2",
+                    models.ForeignKey(
+                        help_text="Model2 description.",
+                        on_delete=models.CASCADE,
+                        related_name="model1s",
+                        to="tests.Model2",
+                        verbose_name="Model2",
                     ),
                 ),
             ],
