@@ -1,6 +1,12 @@
 from functools import reduce
 from warnings import warn
 
+from rest_framework.serializers import PrimaryKeyRelatedField
+from rest_framework_json_api.relations import (
+    ResourceRelatedField,
+    SerializerMethodResourceRelatedField,
+)
+
 from .config import DGAPConfigManager, VisibilitiesConfig
 
 """
@@ -42,6 +48,34 @@ class VisibilityViewMixin:
             queryset = handler(queryset, self.request)
 
         return queryset
+
+
+class VisibilityRelatedFieldMixin:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        for handler in VisibilitiesConfig.get_handlers(queryset.model):
+            queryset = handler(
+                queryset, self.get_parent_serializer()._context["request"]
+            )
+
+        return queryset
+
+
+class VisibilityPrimaryKeyRelatedField(
+    PrimaryKeyRelatedField, VisibilityRelatedFieldMixin
+):
+    pass
+
+
+class VisibilityResourceRelatedField(ResourceRelatedField, VisibilityRelatedFieldMixin):
+    pass
+
+
+class VisibilitySerializerMethodResourceRelatedField(
+    SerializerMethodResourceRelatedField, VisibilityRelatedFieldMixin
+):
+    pass
 
 
 class BaseVisibility:  # pragma: no cover
