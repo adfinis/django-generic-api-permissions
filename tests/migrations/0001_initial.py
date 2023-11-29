@@ -10,6 +10,29 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name="Model2",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "text",
+                    models.CharField(
+                        help_text="Text description.",
+                        max_length=100,
+                        verbose_name="Text comes here",
+                    ),
+                ),
+            ],
+            options={"abstract": False},
+        ),
+        migrations.CreateModel(
             name="Model1",
             fields=[
                 (
@@ -37,29 +60,7 @@ class Migration(migrations.Migration):
                         related_name="model1s",
                         to="tests.Model2",
                         verbose_name="Model2",
-                    ),
-                ),
-            ],
-            options={"abstract": False},
-        ),
-        migrations.CreateModel(
-            name="Model2",
-            fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "text",
-                    models.CharField(
-                        help_text="Text description.",
-                        max_length=100,
-                        verbose_name="Text comes here",
+                        null=True,
                     ),
                 ),
             ],

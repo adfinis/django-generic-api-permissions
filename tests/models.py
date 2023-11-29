@@ -22,6 +22,7 @@ class Model1(BaseModel):
         related_name="model1s",
         verbose_name=_("Model2"),
         help_text=_("Model2 description."),
+        null=True,
     )
 
 
