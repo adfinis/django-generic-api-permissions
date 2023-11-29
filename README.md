@@ -73,8 +73,8 @@ class MyModelViewset(VisibilityViewMixin, ModelViewSet):
     queryset = ...
 ```
 
-Make sure to use a subclassed `serializer_related_field` (such as the default `PrimariyKeyRelatedField`)
-with the provided `VisibilityRelatedFieldMixin`. Otherwise relationships will leak hidden models.
+Data leaks in REST Framework may happen if you use includes (or even only references) from a model the user may see to something that should be hidden.
+To avoid such leaks, make sure to use a subclassed related field (either by creating your own using the provided `VisibilityRelatedFieldMixin`, or by using one of the provided types. See example below).
 
 ```python
 # serializers.py

@@ -32,7 +32,8 @@ class BaseValidator:
             DeprecationWarning(
                 "BaseValidator is not required anymore. Just use "
                 "a regular class without inheriting from BaseValidator"
-            )
+            ),
+            stacklevel=2,
         )
 
 

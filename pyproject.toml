@@ -1,0 +1,6 @@
+[tool.ruff.lint]
+select = ["E", "W", "F", "B", "I", "C4", "C90"]
+
+ignore = ["E501"]
+
+unfixable = ["B"]

@@ -53,7 +53,8 @@ class BasePermission:
             DeprecationWarning(
                 "BasePermission is not required anymore. Just use "
                 "a regular class without inheriting from BasePermission"
-            )
+            ),
+            stacklevel=2,
         )
 
 
