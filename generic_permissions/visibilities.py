@@ -63,18 +63,24 @@ class VisibilityRelatedFieldMixin:
 
 
 class VisibilityPrimaryKeyRelatedField(
-    PrimaryKeyRelatedField, VisibilityRelatedFieldMixin
+    VisibilityRelatedFieldMixin, PrimaryKeyRelatedField
 ):
+    """Visibility-aware replacement for DRF PrimaryKeyRelatedField."""
+
     pass
 
 
-class VisibilityResourceRelatedField(ResourceRelatedField, VisibilityRelatedFieldMixin):
+class VisibilityResourceRelatedField(VisibilityRelatedFieldMixin, ResourceRelatedField):
+    """Visibility-aware replacement for DRF-JSONAPI ResourceRelatedField."""
+
     pass
 
 
 class VisibilitySerializerMethodResourceRelatedField(
-    SerializerMethodResourceRelatedField, VisibilityRelatedFieldMixin
+    VisibilityRelatedFieldMixin, SerializerMethodResourceRelatedField
 ):
+    """Visibility-aware replacement for DRF-JSONAPI SerializerMethodResourceRelatedField."""
+
     pass
 
 
@@ -85,7 +91,8 @@ class BaseVisibility:  # pragma: no cover
             DeprecationWarning(
                 "BaseVisibility is not required anymore. Just use "
                 "a regular class without inheriting from BaseVisibility"
-            )
+            ),
+            stacklevel=2,
         )
 
 
