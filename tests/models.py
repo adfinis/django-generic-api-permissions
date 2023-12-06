@@ -23,6 +23,15 @@ class Model1(BaseModel):
         verbose_name=_("Model2"),
         help_text=_("Model2 description."),
         null=True,
+        blank=True,
+    )
+    many = models.ManyToManyField(
+        "tests.Model2",
+        related_name="model1s_many",
+        verbose_name=_("Many"),
+        help_text=_("Many description."),
+        null=True,
+        blank=True,
     )
 
 

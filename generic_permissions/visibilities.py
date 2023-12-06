@@ -52,14 +52,32 @@ class VisibilityViewMixin:
 
 class VisibilityRelatedFieldMixin:
     def get_queryset(self):
+        # ManyToManyField use this?
         queryset = super().get_queryset()
 
         for handler in VisibilitiesConfig.get_handlers(queryset.model):
-            queryset = handler(
-                queryset, self.get_parent_serializer()._context["request"]
-            )
+            queryset = handler(queryset, self.parent._context["request"])
 
         return queryset
+
+    def get_attribute(self, instance):
+        # ForeignKey and OneToOneField use this
+
+        # not sure if source is always the right attribute
+        model_instance = getattr(instance, self.source)
+
+        if model_instance is None:
+            return None
+
+        # create a queryset with the current model instance to check visibility
+        queryset = self.queryset.filter(pk=model_instance.pk)
+        for handler in VisibilitiesConfig.get_handlers(queryset.model):
+            queryset = handler(queryset, self.parent._context["request"])
+
+        if not queryset.filter(pk=model_instance.pk).exists():
+            return None
+
+        return super().get_attribute(instance)
 
 
 class VisibilityPrimaryKeyRelatedField(

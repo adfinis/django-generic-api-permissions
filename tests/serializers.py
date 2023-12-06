@@ -15,8 +15,6 @@ class TestModel1Serializer(ValidatorMixin, serializers.ModelSerializer):
 
 
 class TestModel2Serializer(ValidatorMixin, serializers.ModelSerializer):
-    serializer_related_field = VisibilityPrimaryKeyRelatedField
-
     class Meta:
         model = models.Model2
         fields = "__all__"
