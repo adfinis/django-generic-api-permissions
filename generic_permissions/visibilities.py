@@ -1,6 +1,7 @@
 from functools import reduce
 from warnings import warn
 
+from rest_framework.relations import MANY_RELATION_KWARGS, ManyRelatedField
 from rest_framework.serializers import PrimaryKeyRelatedField
 from rest_framework_json_api.relations import (
     ResourceRelatedField,
@@ -50,9 +51,27 @@ class VisibilityViewMixin:
         return queryset
 
 
+class VisibilityManyRelatedField(ManyRelatedField):
+    def get_attribute(self, instance):
+        queryset = super().get_attribute(instance)
+        for handler in VisibilitiesConfig.get_handlers(queryset.model):
+            queryset = handler(queryset, self.parent._context["request"])
+
+        return queryset
+
+
 class VisibilityRelatedFieldMixin:
-    def get_queryset(self):
-        # ManyToManyField use this?
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        # ManyToManyField
+        list_kwargs = {"child_relation": cls(*args, **kwargs)}
+        for key in kwargs:
+            if key in MANY_RELATION_KWARGS:
+                list_kwargs[key] = kwargs[key]
+        return VisibilityManyRelatedField(**list_kwargs)
+
+    def get_queryset(self):  # pragma: no cover
+        # TODO not sure when get_queryset is called, but it is needed
         queryset = super().get_queryset()
 
         for handler in VisibilitiesConfig.get_handlers(queryset.model):
@@ -61,12 +80,10 @@ class VisibilityRelatedFieldMixin:
         return queryset
 
     def get_attribute(self, instance):
-        # ForeignKey and OneToOneField use this
+        # ForeignKey
+        model_instance = super().get_attribute(instance)
 
-        # not sure if source is always the right attribute
-        model_instance = getattr(instance, self.source)
-
-        if model_instance is None:
+        if model_instance.pk is None:
             return None
 
         # create a queryset with the current model instance to check visibility
@@ -77,7 +94,7 @@ class VisibilityRelatedFieldMixin:
         if not queryset.filter(pk=model_instance.pk).exists():
             return None
 
-        return super().get_attribute(instance)
+        return model_instance
 
 
 class VisibilityPrimaryKeyRelatedField(

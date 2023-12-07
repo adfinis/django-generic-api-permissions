@@ -238,8 +238,11 @@ def test_visibility_relation(db, admin_user, admin_client, filter_relation):
 
     if filter_relation:
         assert result["model2"] is None
+        assert len(result["explicit"]) == 0
         assert len(result["many"]) == 0
     else:
         assert result["model2"] == model2.pk
         assert len(result["many"]) == 1
+        assert len(result["explicit"]) == 1
         assert model2.pk in result["many"]
+        assert model2.pk in result["explicit"]
