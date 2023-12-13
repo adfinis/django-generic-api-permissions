@@ -68,16 +68,8 @@ class VisibilityRelatedFieldMixin:
         for key in kwargs:
             if key in MANY_RELATION_KWARGS:
                 list_kwargs[key] = kwargs[key]
+
         return VisibilityManyRelatedField(**list_kwargs)
-
-    def get_queryset(self):  # pragma: no cover
-        # TODO not sure when get_queryset is called, but it is needed
-        queryset = super().get_queryset()
-
-        for handler in VisibilitiesConfig.get_handlers(queryset.model):
-            queryset = handler(queryset, self.parent._context["request"])
-
-        return queryset
 
     def get_attribute(self, instance):
         # ForeignKey
