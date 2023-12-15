@@ -69,8 +69,32 @@ For the visibilities, extend your DRF `ViewSet` classes with the
 from rest_framework.viewsets import ModelViewSet
 from generic_permissions.visibilities import VisibilityViewMixin
 class MyModelViewset(VisibilityViewMixin, ModelViewSet):
-    serializer_class = ...
+    serializer_class = MyModelSerializers
     queryset = ...
+```
+
+Data leaks in REST Framework may happen if you use includes (or even only references) from a model the user may see to something that should be hidden.
+To avoid such leaks, make sure to use a subclassed related field (either by creating your own using the provided `VisibilityRelatedFieldMixin`, or by using one of the provided types. See example below).
+
+```python
+# serializers.py
+from rest_framework.viewsets import ModelSerializer
+from generic_permissions.visibilities import VisibilityPrimaryKeyRelatedField
+class MyModelSerializers(ModelSerializer):
+    serializer_related_field = VisibilityPrimaryKeyRelatedField
+```
+
+A few subclassed fields are provided:
+- `VisibilityPrimaryKeyRelatedField`
+- `VisibilityResourceRelatedField`
+- `VisibilitySerializerMethodResourceRelatedField`
+
+If a different relation field variation is needed extend it with `VisibilityRelatedFieldMixin`:
+
+```python
+from generic_permissions.visibilities import VisibilityRelatedFieldMixin
+class CustomRelationField(VisibilityRelatedFieldMixin):
+    pass
 ```
 
 ### Permission subsystem
@@ -94,13 +118,13 @@ You may use only one of the two mixins, or both, depending on your needs.
 Last, for the validation system, you extend your **serializer** with a mixin:
 ```python
 # serializers.py
-from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
 from generic_permissions.serializers import PermissionSerializerMixin
 from generic_permissions.validation import ValidatorMixin
 
 from myapp import models
-class MyModelSerializer(ValidatorMixin, serializers.ModelSerializer):
+class MyModelSerializer(ValidatorMixin, ModelSerializer):
     # my field definitions...
     class Meta:
         model = models.MyModel

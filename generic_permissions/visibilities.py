@@ -1,6 +1,13 @@
 from functools import reduce
 from warnings import warn
 
+from rest_framework.relations import MANY_RELATION_KWARGS, ManyRelatedField
+from rest_framework.serializers import PrimaryKeyRelatedField
+from rest_framework_json_api.relations import (
+    ResourceRelatedField,
+    SerializerMethodResourceRelatedField,
+)
+
 from .config import DGAPConfigManager, VisibilitiesConfig
 
 """
@@ -44,6 +51,66 @@ class VisibilityViewMixin:
         return queryset
 
 
+class VisibilityManyRelatedField(ManyRelatedField):
+    def get_attribute(self, instance):
+        queryset = super().get_attribute(instance)
+        for handler in VisibilitiesConfig.get_handlers(queryset.model):
+            queryset = handler(queryset, self.parent._context["request"])
+
+        return queryset
+
+
+class VisibilityRelatedFieldMixin:
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        # ManyToManyField
+        list_kwargs = {"child_relation": cls(*args, **kwargs)}
+        for key in kwargs:
+            if key in MANY_RELATION_KWARGS:
+                list_kwargs[key] = kwargs[key]
+
+        return VisibilityManyRelatedField(**list_kwargs)
+
+    def get_attribute(self, instance):
+        # ForeignKey
+        model_instance = super().get_attribute(instance)
+
+        if model_instance.pk is None:
+            return None
+
+        # create a queryset with the current model instance to check visibility
+        queryset = self.queryset.filter(pk=model_instance.pk)
+        for handler in VisibilitiesConfig.get_handlers(queryset.model):
+            queryset = handler(queryset, self.parent._context["request"])
+
+        if not queryset.filter(pk=model_instance.pk).exists():
+            return None
+
+        return model_instance
+
+
+class VisibilityPrimaryKeyRelatedField(
+    VisibilityRelatedFieldMixin, PrimaryKeyRelatedField
+):
+    """Visibility-aware replacement for DRF PrimaryKeyRelatedField."""
+
+    pass
+
+
+class VisibilityResourceRelatedField(VisibilityRelatedFieldMixin, ResourceRelatedField):
+    """Visibility-aware replacement for DRF-JSONAPI ResourceRelatedField."""
+
+    pass
+
+
+class VisibilitySerializerMethodResourceRelatedField(
+    VisibilityRelatedFieldMixin, SerializerMethodResourceRelatedField
+):
+    """Visibility-aware replacement for DRF-JSONAPI SerializerMethodResourceRelatedField."""
+
+    pass
+
+
 class BaseVisibility:  # pragma: no cover
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -51,7 +118,8 @@ class BaseVisibility:  # pragma: no cover
             DeprecationWarning(
                 "BaseVisibility is not required anymore. Just use "
                 "a regular class without inheriting from BaseVisibility"
-            )
+            ),
+            stacklevel=2,
         )
 
 

@@ -208,3 +208,41 @@ def test_union_visibility_none(db, admin_client):
     VisibilitiesConfig.clear_handlers()
     VisibilitiesConfig.register_handler_class(ConfiguredUnion)
     assert len(admin_client.get(url).json()) == 0
+
+
+@pytest.mark.parametrize("filter_relation", [True, False])
+def test_visibility_relation(db, admin_user, admin_client, filter_relation):
+    class TestVisibility:
+        @filter_queryset_for(Model2)
+        def filter_queryset_for_document(self, queryset, request):
+            if filter_relation:
+                return queryset.exclude(text="apple")
+            return queryset
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(TestVisibility)
+
+    Model2.objects.create(text="none")
+    model2 = Model2.objects.create(text="apple")
+    model1 = Model1.objects.create(text="pear", model2=model2)
+    model1.many.add(model2)
+    model1.save()
+
+    url = reverse("model1-detail", args=[model1.pk])
+    response = admin_client.get(url)
+
+    assert response.status_code == HTTP_200_OK
+    result = response.json()
+
+    assert result["text"] == "pear"
+
+    if filter_relation:
+        assert result["model2"] is None
+        assert len(result["explicit"]) == 0
+        assert len(result["many"]) == 0
+    else:
+        assert result["model2"] == model2.pk
+        assert len(result["many"]) == 1
+        assert len(result["explicit"]) == 1
+        assert model2.pk in result["many"]
+        assert model2.pk in result["explicit"]

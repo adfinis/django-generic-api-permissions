@@ -9,7 +9,8 @@ class VisibilityViewMixin(visibilities.VisibilityViewMixin):  # pragma: no cover
             DeprecationWarning(
                 "VisibilityViewMixin has moved from generic_permissions.views "
                 "to generic_permissions.visibilities. Please update your imports"
-            )
+            ),
+            stacklevel=2,
         )
         super().__init__(*args, **kwargs)
 
@@ -20,6 +21,7 @@ class PermissionViewMixin(permissions.PermissionViewMixin):  # pragma: no cover
             DeprecationWarning(
                 "PermissionViewMixin has moved from generic_permissions.views "
                 "to generic_permissions.permissions. Please update your imports"
-            )
+            ),
+            stacklevel=2,
         )
         super().__init__(*args, **kwargs)

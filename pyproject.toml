@@ -1,0 +1,28 @@
+[tool.ruff.lint]
+select = ["E", "W", "F", "B", "I", "C4", "C90"]
+
+ignore = [
+    # whitespace before ':'
+    "E203",
+    # too many leading ### in a block comment
+    "E266",
+    # line too long (managed by black)
+    "E501",
+    # do not enforce existence of docstrings
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    # needed because of https://github.com/ambv/black/issues/144
+    "D202",
+]
+
+unfixable = ["B"]
+
+[tool.pytest.ini_options]
+addopts = "--reuse-db --randomly-seed=1521188766 --randomly-dont-reorganize"
+DJANGO_SETTINGS_MODULE = "tests.settings"

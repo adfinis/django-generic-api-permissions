@@ -8,7 +8,8 @@ class VisibilityModelMixin:
             DeprecationWarning(
                 "VisibilityModelMixin is not required anymore and "
                 "will be removed in a future version of DGAP"
-            )
+            ),
+            stacklevel=2,
         )
 
 
@@ -19,5 +20,6 @@ class PermissionModelMixin:
             DeprecationWarning(
                 "PermissionModelMixin is not required anymore and "
                 "will be removed in a future version of DGAP"
-            )
+            ),
+            stacklevel=2,
         )
