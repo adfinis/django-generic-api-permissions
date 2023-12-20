@@ -1,10 +1,15 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
+from rest_framework import serializers
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from generic_permissions.config import VisibilitiesConfig
-from generic_permissions.visibilities import Union, filter_queryset_for
+from generic_permissions.visibilities import (
+    Union,
+    VisibilityPrimaryKeyRelatedField,
+    filter_queryset_for,
+)
 
 from .models import BaseModel, Model1, Model2
 
@@ -246,3 +251,52 @@ def test_visibility_relation(db, admin_user, admin_client, filter_relation):
         assert len(result["explicit"]) == 1
         assert model2.pk in result["many"]
         assert model2.pk in result["explicit"]
+
+
+def test_visibility_relation_patch(db, admin_user, admin_client):
+    class TestVisibility:
+        @filter_queryset_for(Model2)
+        def filter_queryset_for_document(self, queryset, request):
+            return queryset.exclude(text="apple")
+
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(TestVisibility)
+
+    model1 = Model1.objects.create(text="pear")
+    Model2.objects.create(text="hidden")
+    model2 = Model2.objects.create(text="apple")
+    model3 = Model2.objects.create(text="melon")
+    model4 = Model2.objects.create(text="orange")
+    model1.many.add(model2)
+    model1.many.add(model3)
+
+    data = {"many": [model4.pk]}
+
+    url = reverse("model1-detail", args=[model1.pk])
+    response = admin_client.patch(url, data)
+
+    assert response.status_code == HTTP_200_OK
+    result = response.json()
+
+    assert result["text"] == "pear"
+    assert len(result["many"]) == 1
+    assert model4.pk in result["many"]
+
+    model1.refresh_from_db()
+    assert model1.many.all().count() == 2
+    assert model1.many.filter(pk=model2.pk).exists()
+    assert model1.many.filter(pk=model4.pk).exists()
+
+
+def test_visibility_related_field_check(db):
+    class WrongSerializer(serializers.ModelSerializer):
+        serializer_related_field = VisibilityPrimaryKeyRelatedField
+
+        class Meta:
+            model = Model1
+            fields = "__all__"
+
+    model1 = Model1.objects.create(text="pear")
+    with pytest.raises(RuntimeWarning):
+        serializer = WrongSerializer(model1)
+        serializer.data  # noqa: B018
