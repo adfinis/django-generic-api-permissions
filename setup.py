@@ -12,12 +12,12 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="django-generic-api-permissions",
-    version="0.2.0",
+    version="0.3.0",
     author="adfinis",
     description="Generic API permissions and visibilities for Django",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/adfinis-sygroup/django-generic-api-permissions",
+    url="https://github.com/adfinis/django-generic-api-permissions",
     license="License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
     packages=["generic_permissions"],
     install_requires=["django>=3.2"],
