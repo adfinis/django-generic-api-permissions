@@ -84,7 +84,7 @@ class VisibilitySerializerMixin:
         # keep the existing relations which are not included in the request.
         for key, field in self.fields.items():
             if (
-                type(field) is not VisibilityManyRelatedField
+                not isinstance(field, VisibilityManyRelatedField)
                 or key not in validated_data
             ):
                 continue
@@ -129,13 +129,12 @@ class VisibilityRelatedFieldMixin:
         return model_instance
 
     def bind(self, field_name, parent):
-        parent_cls = type(parent)
-        if parent_cls is VisibilityManyRelatedField:
+        if isinstance(parent, VisibilityManyRelatedField):
             return super().bind(field_name, parent)
 
-        if VisibilitySerializerMixin not in parent_cls.mro():
+        if not isinstance(parent, VisibilitySerializerMixin):
             raise RuntimeWarning(
-                f"To avoid data loss, use VisibilitySerializerMixin in {parent_cls.__name__}"
+                f"To avoid data loss, use VisibilitySerializerMixin in {type(parent).__name__}"
             )
         return super().bind(field_name, parent)
 
