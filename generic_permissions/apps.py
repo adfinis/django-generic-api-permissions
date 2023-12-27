@@ -8,8 +8,6 @@ from generic_permissions.config import (
     ValidatorsConfig,
     VisibilitiesConfig,
 )
-from generic_permissions.permissions import AllowAny
-from generic_permissions.visibilities import Any
 
 
 class GenericPermissionsConfig(AppConfig):
@@ -17,6 +15,10 @@ class GenericPermissionsConfig(AppConfig):
     verbose_name = "Django Generic API Permissions"
 
     def ready(self):
+        # prevent importing before django is ready
+        from generic_permissions.permissions import AllowAny
+        from generic_permissions.visibilities import Any
+
         self._init_config(
             "GENERIC_PERMISSIONS_PERMISSION_CLASSES",
             [AllowAny],
