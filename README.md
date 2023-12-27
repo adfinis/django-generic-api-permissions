@@ -19,25 +19,22 @@ specific rules as to who can write posts.
 DGAP makes it easy to implement the blog once, and make the permissions,
 visibilities, and validations custom to each deployment.
 
-
 ## Concepts
 
 DGAP provides you with three configuration settings: Visibilities, Permissions,
 and Validations.
 
-* The **visibilities** are run when getting data from the API. They define, on a
+- The **visibilities** are run when getting data from the API. They define, on a
   per-user base, who can see which data.
-* The **validations** are run on create and update operations, so
+- The **validations** are run on create and update operations, so
   data can be checked and modified before the update takes place.
-* The **permissions** then define what a user can do with a given (visible) piece of
+- The **permissions** then define what a user can do with a given (visible) piece of
   data.
-
 
 ## Installation for app developers
 
 If you want to integrate DGAP into your app, these are the steps you need.
 Install DGAP (and add to your requirements files etc) first.
-
 
 ```bash
 pip install django-generic-api-permissions
@@ -75,16 +72,26 @@ class MyModelViewset(VisibilityViewMixin, ModelViewSet):
 
 Data leaks in REST Framework may happen if you use includes (or even only references) from a model the user may see to something that should be hidden.
 To avoid such leaks, make sure to use a subclassed related field (either by creating your own using the provided `VisibilityRelatedFieldMixin`, or by using one of the provided types. See example below).
+To set it for every relation in the serializer use DRFs `serializer_related_field` attribute in the serializer.
+
+It's important to be aware of potential issues when updating (PATCH) existing relationships, especially when some relationships are hidden due to visibility settings. If not handled correctly, the hidden relationships may be unintentionally removed during an update, resulting in only the new relationships being set.
+
+To avoid this, you must incorporate the `VisibilitySerializerMixin` into your serializer where you're using the `VisibilityRelatedFieldMixin` for the relationship field. This ensures that hidden relationships are properly accounted for during updates.
+
+Remember to define the `VisibilitySerializerMixin` after the `ValidatorMixin`. This order is crucial because it ensures that validations are performed first, and only then are the relationships updated.
+
+This step is vital to maintain the integrity of your data and prevent accidental loss of hidden relationships.
 
 ```python
 # serializers.py
 from rest_framework.viewsets import ModelSerializer
-from generic_permissions.visibilities import VisibilityPrimaryKeyRelatedField
-class MyModelSerializers(ModelSerializer):
+from generic_permissions.visibilities import VisibilityPrimaryKeyRelatedField, VisibilitySerializerMixin
+class MyModelSerializers(VisibilitySerializerMixin, ModelSerializer):
     serializer_related_field = VisibilityPrimaryKeyRelatedField
 ```
 
-A few subclassed fields are provided:
+A few subclassed fields are provided for different types of `RelatedField`:
+
 - `VisibilityPrimaryKeyRelatedField`
 - `VisibilityResourceRelatedField`
 - `VisibilitySerializerMethodResourceRelatedField`
@@ -110,12 +117,13 @@ class MyModelViewset(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
     serializer_class = ...
     queryset = ...
 ```
-You may use only one of the two mixins, or both, depending on your needs.
 
+You may use only one of the two mixins, or both, depending on your needs.
 
 ### Validation subsystem
 
 Last, for the validation system, you extend your **serializer** with a mixin:
+
 ```python
 # serializers.py
 from rest_framework.serializers import ModelSerializer
@@ -124,13 +132,13 @@ from generic_permissions.serializers import PermissionSerializerMixin
 from generic_permissions.validation import ValidatorMixin
 
 from myapp import models
+
 class MyModelSerializer(ValidatorMixin, ModelSerializer):
     # my field definitions...
     class Meta:
         model = models.MyModel
         fields = "__all__"
 ```
-
 
 ## Usage - for people deploying a DGAP-equipped app
 
@@ -142,6 +150,7 @@ accordingly.
 ### Visibilities
 
 First, let's define the visibility class:
+
 ```python
 # my_custom_visibilities.py
 from generic_permissions.visibilities import filter_queryset_for
@@ -192,7 +201,6 @@ class ResultingVisibility(Union):
     visibility_classes = [MyFirstVisibility, MySecondVisibility]
 ```
 
-
 ### Permissions
 
 Permission classes define who may perform which data mutation. They can be configured
@@ -202,10 +210,11 @@ To write custom permission classes, you create a simple class, and decorate the
 methods that define the permissions accordingly.
 
 There are two types of methods in the permissions system:
-* `permission_for`: Marks methods that define generic access permissions for a
+
+- `permission_for`: Marks methods that define generic access permissions for a
   given model. They are always checked first.
   Those methods will receive one positional argument, namely the `request` object
-* `object_permission_for`: Define whether access to a specific object shall be
+- `object_permission_for`: Define whether access to a specific object shall be
   granted. This called for all other operations **except** creation.
   These methods will receive two positional arguments: First, the `request`
   object, and second, the model instance that is being accessed in the request.
@@ -221,7 +230,7 @@ that to avoid code duplication.
 You can find more information about the `request` object in the
 [Django documentation](https://docs.djangoproject.com/en/3.1/ref/request-response/#httprequest-objects)
 
-``` python
+```python
 from generic_permissions.permissions import permission_for, object_permission_for
 from my_app.models import Post, Comment
 
@@ -230,7 +239,7 @@ class OnlyAuthenticated:
     def has_permission_default(self, request):
         # No permission is granted for any non-authenticated users
         return request.user.is_authenticated
-        
+
 class BlogPermissions:
     @permission_for(Comment)
     def has_permission_for_comment(self, request):
@@ -247,11 +256,11 @@ class BlogPermissions:
 ```
 
 The following pre-defined classes are available:
-* `generic_permissions.permissions.AllowAny`: allow any users to perform any mutation (default)
-* `generic_permissions.permissions.DenyAll`: deny all operations to any object.
+
+- `generic_permissions.permissions.AllowAny`: allow any users to perform any mutation (default)
+- `generic_permissions.permissions.DenyAll`: deny all operations to any object.
   You can use this as a base class for your permissions - as long as you don't
   allow something, it will be denied.
-
 
 ### Data validation
 
@@ -285,4 +294,4 @@ the method returns a `dict` with a compatible structure. You may also
 to succeed.
 The second parameter, `context`, is a `dict` containing the DRF context: Access
 `context['request']` to get the request (if validation depends on the user,
-for example). 
+for example).

@@ -60,6 +60,46 @@ class VisibilityManyRelatedField(ManyRelatedField):
         return queryset
 
 
+class VisibilitySerializerMixin:
+    """
+    Mixin for serializers to handle visibility of related fields.
+
+    This mixin ensures that when updating (PATCH) existing relationships,
+    any relationships not included in the request (due to visibility settings)
+    are not unintentionally removed. It does this by adding back the existing relations
+    which are not included in the request.
+
+    This mixin should be used in conjunction with the `VisibilityRelatedFieldMixin`
+    for the relationship field and should be defined after the `ValidatorMixin`
+    to ensure validations are performed first.
+    """
+
+    def validate(self, *args, **kwargs):
+        validated_data = super().validate(*args, **kwargs)
+
+        if not self.instance:
+            return validated_data
+
+        # Incoming patches can have a subset of all relations, so we need to
+        # keep the existing relations which are not included in the request.
+        for key, field in self.fields.items():
+            if (
+                not isinstance(field, VisibilityManyRelatedField)
+                or key not in validated_data
+            ):
+                continue
+
+            # Find the relations which the request can include.
+            queryset = getattr(self.instance, key).all()
+            for handler in VisibilitiesConfig.get_handlers(queryset.model):
+                queryset = handler(queryset, self.context)
+
+            # Add remaining relations which can not be included in the request.
+            validated_data[key] += getattr(self.instance, key).exclude(pk__in=queryset)
+
+        return validated_data
+
+
 class VisibilityRelatedFieldMixin:
     @classmethod
     def many_init(cls, *args, **kwargs):
@@ -87,6 +127,16 @@ class VisibilityRelatedFieldMixin:
             return None
 
         return model_instance
+
+    def bind(self, field_name, parent):
+        if isinstance(parent, VisibilityManyRelatedField):
+            return super().bind(field_name, parent)
+
+        if not isinstance(parent, VisibilitySerializerMixin):
+            raise RuntimeWarning(
+                f"To avoid data loss, use VisibilitySerializerMixin in {type(parent).__name__}"
+            )
+        return super().bind(field_name, parent)
 
 
 class VisibilityPrimaryKeyRelatedField(
