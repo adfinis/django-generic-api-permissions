@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
       - name: Ensure latest setuptools
@@ -31,33 +31,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Setup python
+        uses: actions/setup-python@v5
         with:
           python-version: 3.12
-      - name: Ensure latest setuptools
-        run: |
-          python -m pip install --upgrade pip setuptools
+          cache: "poetry"
+
       - name: Install dependencies
-        run: pip install tox
-      - name: Run Tox
-        run: tox -e lint
+        run: poetry install
+
+      - name: Run black
+        run: poetry run ruff check .
+
 
   format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.12
-      - name: Ensure latest setuptools
-        run: |
-          python -m pip install --upgrade pip setuptools
+          cache: "poetry"
+
       - name: Install dependencies
-        run: pip install tox
-      - name: Run Tox
-        run: tox -e format
+        run: poetry install
+
+      - name: Run black
+        run: poetry run black --check .
 
   gitlint:
     runs-on: ubuntu-latest
@@ -66,7 +75,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
       - name: Install gitlint
