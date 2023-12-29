@@ -3,10 +3,6 @@ from warnings import warn
 
 from rest_framework.relations import MANY_RELATION_KWARGS, ManyRelatedField
 from rest_framework.serializers import PrimaryKeyRelatedField
-from rest_framework_json_api.relations import (
-    ResourceRelatedField,
-    SerializerMethodResourceRelatedField,
-)
 
 from .config import DGAPConfigManager, VisibilitiesConfig
 
@@ -147,18 +143,30 @@ class VisibilityPrimaryKeyRelatedField(
     pass
 
 
-class VisibilityResourceRelatedField(VisibilityRelatedFieldMixin, ResourceRelatedField):
-    """Visibility-aware replacement for DRF-JSONAPI ResourceRelatedField."""
+try:
+    from rest_framework_json_api.relations import (
+        ResourceRelatedField,
+        SerializerMethodResourceRelatedField,
+    )
 
-    pass
+    class VisibilityResourceRelatedField(
+        VisibilityRelatedFieldMixin, ResourceRelatedField
+    ):
+        """Visibility-aware replacement for DRF-JSONAPI ResourceRelatedField."""
 
+        pass
 
-class VisibilitySerializerMethodResourceRelatedField(
-    VisibilityRelatedFieldMixin, SerializerMethodResourceRelatedField
-):
-    """Visibility-aware replacement for DRF-JSONAPI SerializerMethodResourceRelatedField."""
+    class VisibilitySerializerMethodResourceRelatedField(
+        VisibilityRelatedFieldMixin, SerializerMethodResourceRelatedField
+    ):
+        """Visibility-aware replacement for DRF-JSONAPI SerializerMethodResourceRelatedField."""
 
-    pass
+        pass
+
+except ModuleNotFoundError:  # pragma: no cover
+    print(
+        "django-rest-framework-json-api is not installed. Skipping django-rest-framework-json-api related imports."
+    )
 
 
 class BaseVisibility:  # pragma: no cover
