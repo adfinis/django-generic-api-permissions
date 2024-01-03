@@ -1,22 +1,150 @@
-# v0.3.0 (2023-12-27)
-
-## Features
-
-* Apply visibility rules for relationships
-* Introduce ruff
-
-# v0.2.0 (2021-08-26)
-
-## Features
-
-* Add support for custom validations
-
-## Refactor
-
-Refactored the codebase, simplifying the code. Only one mixin per feature
-required now.
+# CHANGELOG
 
 
-# v0.1.0 (2020-12-18)
 
-Initial release
+## v0.4.0 (2024-01-03)
+
+### Chore
+
+* chore: fix version variable semantic release ([`83a33d2`](https://github.com/adfinis/django-generic-api-permissions/commit/83a33d25754883f789df5e69558c96ddaee45446))
+
+* chore: fix semantic release action version ([`3ed75e0`](https://github.com/adfinis/django-generic-api-permissions/commit/3ed75e07f3550a1c27b23254837a53db4ee1418d))
+
+* chore: fix release.yml (#13) ([`6d6a0ee`](https://github.com/adfinis/django-generic-api-permissions/commit/6d6a0eeaffcfd1f90e920c663988f3e11c56db45))
+
+### Feature
+
+* feat: migrate to poetry
+
+add sematic release ([`41c9226`](https://github.com/adfinis/django-generic-api-permissions/commit/41c922646b76ee4f2d7b9e2affdf6ddde09a6786))
+
+### Fix
+
+* fix: import after app is ready ([`db1d1e6`](https://github.com/adfinis/django-generic-api-permissions/commit/db1d1e669f4fab8f7449d690ba7c8a36c51eb75c))
+
+### Unknown
+
+* Merge pull request #12 from adfinis/poetry
+
+feat: migrate to poetry, semantic release ([`9a4ea26`](https://github.com/adfinis/django-generic-api-permissions/commit/9a4ea261555a3b223696a4c9f3dbbe3d326e7953))
+
+* Merge pull request #11 from adfinis/fix-app-ready
+
+fix: import after app is ready ([`6020979`](https://github.com/adfinis/django-generic-api-permissions/commit/6020979fb4a48fa2c6c52aaf42c9105b4fc2ec48))
+
+
+## v0.3.0 (2023-12-27)
+
+### Chore
+
+* chore: release 0.3.0 ([`4bdbc79`](https://github.com/adfinis/django-generic-api-permissions/commit/4bdbc79b6e804bdf58c4d761f18d78b4a8034765))
+
+### Feature
+
+* feat: filter manytomany relations ([`34be60c`](https://github.com/adfinis/django-generic-api-permissions/commit/34be60cdd63adc276eac14108f578f7ce7cfff52))
+
+* feat: implement foreignkey visibility filtering ([`7d01398`](https://github.com/adfinis/django-generic-api-permissions/commit/7d01398073c6058008cc49ab9906d87d5dbd9865))
+
+* feat: add visibiility mixin for relationships ([`545c36a`](https://github.com/adfinis/django-generic-api-permissions/commit/545c36a34480c2b7ed6068aab98aece97e977f88))
+
+### Fix
+
+* fix: improve type checks ([`0ee7e0e`](https://github.com/adfinis/django-generic-api-permissions/commit/0ee7e0e53cf895fde4200903e328be3a2e038ec1))
+
+* fix: prevent overwrite of hidden relations in patch ([`7247483`](https://github.com/adfinis/django-generic-api-permissions/commit/72474834f6384a90fc78b92e74d440d56aed7ab5))
+
+* fix: remove unnecessary get_queryset from RelatedFieldMixin ([`15e2ea4`](https://github.com/adfinis/django-generic-api-permissions/commit/15e2ea4ecb34b3935eef5784e1301001947b368a))
+
+* fix: fix test setup ([`a23d244`](https://github.com/adfinis/django-generic-api-permissions/commit/a23d244659f54422a955469a8f976b242af2c238))
+
+* fix: change MRO for serializer relation fields ([`09f13fe`](https://github.com/adfinis/django-generic-api-permissions/commit/09f13fe014ab606a3962deecfcd96113a4d799c6))
+
+* fix: add more python versions to test
+
+switch to ruff ([`2d988db`](https://github.com/adfinis/django-generic-api-permissions/commit/2d988db8a828e40bad296b1b79699ded83da21ca))
+
+* fix: fix test suite ([`7adea9e`](https://github.com/adfinis/django-generic-api-permissions/commit/7adea9e7552f8564020d64acebf9c63865d66a4b))
+
+### Unknown
+
+* Merge pull request #10 from adfinis/release-0.3.0
+
+chore: release 0.3.0 ([`57353e5`](https://github.com/adfinis/django-generic-api-permissions/commit/57353e57a2708f041b5e5cfc418c4c2c6bfefa9d))
+
+* Merge pull request #9 from adfinis/fix-relation-patch
+
+fix: prevent overwrite of hidden relations in patch ([`216fb80`](https://github.com/adfinis/django-generic-api-permissions/commit/216fb80ddd5c73f9f7620b8e98ef7ce4bb06edef))
+
+* Merge pull request #8 from adfinis/relationship-visibility
+
+feat: add visibiilities to relationships ([`aee4880`](https://github.com/adfinis/django-generic-api-permissions/commit/aee488059bcd965448591efeaf644a0de67de6fc))
+
+
+## v0.2.0 (2021-08-26)
+
+### Chore
+
+* chore: version bump 0.2.0 ([`ac19e5c`](https://github.com/adfinis/django-generic-api-permissions/commit/ac19e5c1565c4de98c8feee5e666f6c5f929c3fe))
+
+* chore(tests): django changes
+
+Django 5 will set USE_TZ to default and warns if our settings.py doesn&#39;t contain it.
+Also, they renamed the master branc to main. Django-latest requires Python 3.8+, so
+we cannot test that combination anymore ([`53b5352`](https://github.com/adfinis/django-generic-api-permissions/commit/53b5352faeca0afb302682697697f7d5ff8f929d))
+
+### Refactor
+
+* refactor: unify the code base, add validation
+
+Since the code base baseicall does the same for four different objectives,
+we shouldn&#39;t have multiple, similar implementations of basically the same things.
+
+This introduces a generic config class that is used to register
+permission, visibility, and validation classes. The interface to using the package has been
+cleaned up as well: The model classes won&#39;t need a mixin anymore for either visibility
+or permissions to work. The permission classes don&#39;t need to inherit from the `BasePermission` anymore either
+
+There is now a clean import / usage structure to use this package:
+
+* all permissions stuff can be imported from `generic_permissions.permissions`
+* all visibility stuff can be imported from `generic_permissions.visibilities`
+* all validation stuff can be imported from `generic_permissions.validation` ([`faa61d2`](https://github.com/adfinis/django-generic-api-permissions/commit/faa61d21c7200c88e33455c6dba2bfac84465012))
+
+### Unknown
+
+* Merge pull request #6 from winged/bump
+
+chore: version bump 0.2.0 ([`8caaaa7`](https://github.com/adfinis/django-generic-api-permissions/commit/8caaaa785336b432a1cf21f5a0f49257ef6ffb97))
+
+* Merge pull request #5 from winged/feat_validation
+
+refactor: unify the code base, add validation ([`c219d7d`](https://github.com/adfinis/django-generic-api-permissions/commit/c219d7d98bb7054909b20e90dc801c4f3c696cdb))
+
+
+## v0.1.0 (2020-12-18)
+
+### Chore
+
+* chore: prepare first proper release ([`0d5d677`](https://github.com/adfinis/django-generic-api-permissions/commit/0d5d677db07af945447408044720fa5f93ba60c6))
+
+* chore: prepare metadata for PyPI release ([`c89cf9c`](https://github.com/adfinis/django-generic-api-permissions/commit/c89cf9cfe488bd675aa642ebe87a5c76ac8ced46))
+
+### Feature
+
+* feat: add initial implementation ([`2a8d8b4`](https://github.com/adfinis/django-generic-api-permissions/commit/2a8d8b4969b6a1917c397b86e8040493f26aa0df))
+
+### Unknown
+
+* Merge pull request #3 from open-dynaMIX/prepare_initial_release
+
+chore: prepare first proper release ([`748b194`](https://github.com/adfinis/django-generic-api-permissions/commit/748b19432bc622b4dbdc279a8ecbfe47052c8ac2))
+
+* Merge pull request #2 from open-dynaMIX/prepare_metadata
+
+chore: prepare metadata for PyPI release ([`3ad42d3`](https://github.com/adfinis/django-generic-api-permissions/commit/3ad42d3523f7a0f263d308e1b02707b2b180db63))
+
+* Merge pull request #1 from open-dynaMIX/initial_implementation
+
+feat: add initial implementation ([`de8671f`](https://github.com/adfinis/django-generic-api-permissions/commit/de8671f428d3a92aa53107bd33631d877ed38f2e))
+
+* initial commit ([`9483f26`](https://github.com/adfinis/django-generic-api-permissions/commit/9483f26dc37a8280a7b4331ba4d33deb73fe2126))
