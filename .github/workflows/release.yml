@@ -19,6 +19,12 @@ jobs:
     - name: Install poetry
       run: pipx install poetry
 
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: "poetry"
+
     - name: Python Semantic Release
       id: release
       uses: python-semantic-release/python-semantic-release@v8.7.0
