@@ -1,4 +1,4 @@
-name: Semantic Release
+name: Release
 
 on:
   workflow_dispatch:
@@ -16,6 +16,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Install poetry
+      run: pipx install poetry
+
     - name: Python Semantic Release
       id: release
       uses: python-semantic-release/python-semantic-release@v8.7.0
@@ -23,6 +26,4 @@ jobs:
         github_token: ${{ secrets.GH_TOKEN }}
 
     - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      if: steps.release.outputs.released == 'true'
-      
+      uses: pypa/gh-action-pypi-publish@release/v1      
