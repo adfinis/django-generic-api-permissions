@@ -80,7 +80,7 @@ commit_parser = "angular"
 logging_use_named_masks = false
 major_on_zero = true
 tag_format = "v{version}"
-version_toml = "pyproject.toml:tool.poetry.version"
+version_toml = ["pyproject.toml:tool.poetry.version"]
 
 [tool.semantic_release.branches.main]
 match = "main"
