@@ -1,5 +1,22 @@
 # CHANGELOG
 
+
+
+## v0.4.1 (2024-01-03)
+
+### Chore
+
+* chore: add python to release action ([`9c16fa4`](https://github.com/adfinis/django-generic-api-permissions/commit/9c16fa4eed2402aa4e99f3ae6de522522ec73f01))
+
+* chore: add poetry to release action ([`d76b9d9`](https://github.com/adfinis/django-generic-api-permissions/commit/d76b9d963cb3a77b15f789b28480b1015eb292b7))
+
+* chore: add build command ([`67e2529`](https://github.com/adfinis/django-generic-api-permissions/commit/67e2529ec1a824debc0a706cc642b033f28cd3e0))
+
+### Fix
+
+* fix: increase min python for flake8 ([`393b930`](https://github.com/adfinis/django-generic-api-permissions/commit/393b93054371477b73f998ea61ffed29c247de53))
+
+
 ## v0.4.0 (2024-01-03)
 
 ### Chore
