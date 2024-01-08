@@ -2,6 +2,7 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from rest_framework import serializers
+from rest_framework.request import Request
 from rest_framework.status import HTTP_200_OK, HTTP_404_NOT_FOUND
 
 from generic_permissions.config import VisibilitiesConfig
@@ -29,6 +30,7 @@ def test_visibility(
     class TestVisibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_document(self, queryset, request):
+            assert isinstance(request, Request)
             if request.user.username != "admin":
                 return queryset.none()
             return queryset.exclude(text="bar")
@@ -220,6 +222,7 @@ def test_visibility_relation(db, admin_user, admin_client, filter_relation):
     class TestVisibility:
         @filter_queryset_for(Model2)
         def filter_queryset_for_document(self, queryset, request):
+            assert isinstance(request, Request)
             if filter_relation:
                 return queryset.exclude(text="apple")
             return queryset
@@ -257,6 +260,7 @@ def test_visibility_relation_patch(db, admin_user, admin_client):
     class TestVisibility:
         @filter_queryset_for(Model2)
         def filter_queryset_for_document(self, queryset, request):
+            assert isinstance(request, Request)
             return queryset.exclude(text="apple")
 
     VisibilitiesConfig.clear_handlers()
