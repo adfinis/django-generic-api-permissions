@@ -88,7 +88,7 @@ class VisibilitySerializerMixin:
             # Find the relations which the request can include.
             queryset = getattr(self.instance, key).all()
             for handler in VisibilitiesConfig.get_handlers(queryset.model):
-                queryset = handler(queryset, self.context)
+                queryset = handler(queryset, self.context["request"])
 
             # Add remaining relations which can not be included in the request.
             validated_data[key] += getattr(self.instance, key).exclude(pk__in=queryset)
