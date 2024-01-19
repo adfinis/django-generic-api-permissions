@@ -35,7 +35,7 @@ djangorestframework = "^3.14"
 
 [tool.poetry.dev-dependencies]
 black = "^23.12.1"
-ruff = "^0.1.11"
+ruff = "^0.1.13"
 
 [tool.poetry.group.djangorestframework-jsonapi]
 optional = true
