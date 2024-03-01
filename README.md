@@ -187,7 +187,7 @@ user group B. You want to combine those in a simple way. For this, we have
 provided you the `Union` visibility:
 
 ```python
-form generic_permissions.visibilities import Union
+from generic_permissions.visibilities import Union
 
 class MyFirstVisibility:
     #  ...
