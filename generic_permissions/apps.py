@@ -30,7 +30,7 @@ class GenericPermissionsConfig(AppConfig):
         )
 
         self._init_config(
-            "GENERIC_PERMISSIONS_VALIDATOR_CLASSES", [], [ValidatorsConfig]
+            "GENERIC_PERMISSIONS_VALIDATION_CLASSES", [], [ValidatorsConfig]
         )
 
     def _init_config(self, setting_name, defaults, configs):
