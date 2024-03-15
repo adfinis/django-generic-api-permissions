@@ -46,3 +46,7 @@ class ValidatorMixin:
         ):
             validated_data = method(validated_data, context=self.context)
         return validated_data
+
+
+class PassThrough:
+    pass
