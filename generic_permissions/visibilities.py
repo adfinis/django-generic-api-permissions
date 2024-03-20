@@ -114,8 +114,10 @@ class VisibilityRelatedFieldMixin:
         if model_instance.pk is None:
             return None
 
-        # create a queryset with the current model instance to check visibility
-        queryset = self.queryset.filter(pk=model_instance.pk)
+        # read only fields don't have queryset, infer it from the model
+        queryset = self.queryset or type(instance).objects
+        queryset = queryset.filter(pk=model_instance.pk)
+
         for handler in VisibilitiesConfig.get_handlers(queryset.model):
             queryset = handler(queryset, self.parent._context["request"])
 
