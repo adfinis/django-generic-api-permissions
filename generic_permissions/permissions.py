@@ -39,6 +39,9 @@ class PermissionViewMixin:
 
         Called by get_object().
         """
+        if request.method == "GET":
+            return
+
         for handler in ObjectPermissionsConfig.get_handlers(
             self.get_serializer().Meta.model
         ):
