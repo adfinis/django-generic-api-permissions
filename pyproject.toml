@@ -44,6 +44,16 @@ optional = true
 djangorestframework-jsonapi= "^6.1"
 
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+pytest-cov = "^5.0.0"
+pytest-mock = "^3.14.0"
+pytest-django = "^4.8.0"
+pytest-randomly = "^3.15.0"
+pdbpp = "^0.10.3"
+ipdb = "^0.13.13"
+
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "I", "C4", "C90"]
 
