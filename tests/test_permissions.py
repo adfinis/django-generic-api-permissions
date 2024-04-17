@@ -25,6 +25,7 @@ from .models import Model1, Model2
         ("post", HTTP_201_CREATED),
         ("patch", HTTP_200_OK),
         ("delete", HTTP_204_NO_CONTENT),
+        ("get", HTTP_200_OK),
     ],
 )
 @pytest.mark.parametrize("use_admin_client", [True, False])
@@ -63,7 +64,7 @@ def test_permission(
 
     url = reverse("model1-list")
 
-    if method in ["patch", "delete"]:
+    if method in ["patch", "delete", "get"]:
         url = reverse("model1-detail", args=[tm.pk])
 
     data = {"text": "bar"}
@@ -72,7 +73,7 @@ def test_permission(
 
     response = getattr(client, method)(url, data=data)
 
-    if not use_admin_client:
+    if not use_admin_client and method != "get":
         assert response.status_code == HTTP_403_FORBIDDEN
         return
 
