@@ -41,7 +41,7 @@ ruff = "^0.3.5"
 optional = true
 
 [tool.poetry.group.djangorestframework-jsonapi.dependencies]
-djangorestframework-jsonapi= "^6.1"
+djangorestframework-jsonapi= ">=6.1,<8.0"
 
 
 
