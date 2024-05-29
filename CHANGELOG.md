@@ -2,9 +2,125 @@
 
 
 
+## v0.4.6 (2024-05-29)
+
+### Chore
+
+* chore(deps): bump python-semantic-release/python-semantic-release
+
+Bumps [python-semantic-release/python-semantic-release](https://github.com/python-semantic-release/python-semantic-release) from 8.3.0 to 9.7.3.
+- [Release notes](https://github.com/python-semantic-release/python-semantic-release/releases)
+- [Changelog](https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.md)
+- [Commits](https://github.com/python-semantic-release/python-semantic-release/compare/v8.3.0...v9.7.3)
+
+---
+updated-dependencies:
+- dependency-name: python-semantic-release/python-semantic-release
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+...
+
+Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`d9655f1`](https://github.com/adfinis/django-generic-api-permissions/commit/d9655f17afc86e4c3d58858d639654ebf5495293))
+
+* chore(deps-dev): bump ruff from 0.3.5 to 0.4.6
+
+Bumps [ruff](https://github.com/astral-sh/ruff) from 0.3.5 to 0.4.6.
+- [Release notes](https://github.com/astral-sh/ruff/releases)
+- [Changelog](https://github.com/astral-sh/ruff/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/astral-sh/ruff/compare/v0.3.5...v0.4.6)
+
+---
+updated-dependencies:
+- dependency-name: ruff
+  dependency-type: direct:development
+  update-type: version-update:semver-minor
+...
+
+Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`c614700`](https://github.com/adfinis/django-generic-api-permissions/commit/c6147003d33376bb06aa27b408a00ff1ad8d5894))
+
+* chore(deps-dev): bump djangorestframework-jsonapi from 6.1.0 to 7.0.0
+
+Bumps [djangorestframework-jsonapi](https://github.com/django-json-api/django-rest-framework-json-api) from 6.1.0 to 7.0.0.
+- [Release notes](https://github.com/django-json-api/django-rest-framework-json-api/releases)
+- [Changelog](https://github.com/django-json-api/django-rest-framework-json-api/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/django-json-api/django-rest-framework-json-api/compare/v6.1.0...v7.0.0)
+
+---
+updated-dependencies:
+- dependency-name: djangorestframework-jsonapi
+  dependency-type: direct:development
+  update-type: version-update:semver-major
+...
+
+Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`abe4798`](https://github.com/adfinis/django-generic-api-permissions/commit/abe4798e6d81f1549d1caf6ff9e14dff5b682805))
+
+* chore(deps): bump django from 4.2.11 to 4.2.13
+
+Bumps [django](https://github.com/django/django) from 4.2.11 to 4.2.13.
+- [Commits](https://github.com/django/django/compare/4.2.11...4.2.13)
+
+---
+updated-dependencies:
+- dependency-name: django
+  dependency-type: direct:production
+  update-type: version-update:semver-patch
+...
+
+Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`33362de`](https://github.com/adfinis/django-generic-api-permissions/commit/33362dec0465739b5506145a8d6ba7dad7970d10))
+
+* chore(deps-dev): bump pytest from 8.2.0 to 8.2.1
+
+Bumps [pytest](https://github.com/pytest-dev/pytest) from 8.2.0 to 8.2.1.
+- [Release notes](https://github.com/pytest-dev/pytest/releases)
+- [Changelog](https://github.com/pytest-dev/pytest/blob/main/CHANGELOG.rst)
+- [Commits](https://github.com/pytest-dev/pytest/compare/8.2.0...8.2.1)
+
+---
+updated-dependencies:
+- dependency-name: pytest
+  dependency-type: direct:development
+  update-type: version-update:semver-patch
+...
+
+Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`90762a1`](https://github.com/adfinis/django-generic-api-permissions/commit/90762a161bf0de2d38c67c0e7f4882605f1b5742))
+
+* chore(deps-dev): bump pytest from 8.1.1 to 8.2.0
+
+Bumps [pytest](https://github.com/pytest-dev/pytest) from 8.1.1 to 8.2.0.
+- [Release notes](https://github.com/pytest-dev/pytest/releases)
+- [Changelog](https://github.com/pytest-dev/pytest/blob/main/CHANGELOG.rst)
+- [Commits](https://github.com/pytest-dev/pytest/compare/8.1.1...8.2.0)
+
+---
+updated-dependencies:
+- dependency-name: pytest
+  dependency-type: direct:development
+  update-type: version-update:semver-minor
+...
+
+Signed-off-by: dependabot[bot] &lt;support@github.com&gt; ([`aaae000`](https://github.com/adfinis/django-generic-api-permissions/commit/aaae0005de84ca778974d192b178705e86aee4cf))
+
+### Fix
+
+* fix(permissions): extend drf permission methods
+
+instead of calling permission in each specific method (create, etc.)
+call super in check_object_permission ([`00580d8`](https://github.com/adfinis/django-generic-api-permissions/commit/00580d83c4681df17e366e54942b00b9971ef945))
+
+### Unknown
+
+* Revert &#34;chore(deps): bump python-semantic-release/python-semantic-release&#34;
+
+This reverts commit d9655f17afc86e4c3d58858d639654ebf5495293. ([`18e447a`](https://github.com/adfinis/django-generic-api-permissions/commit/18e447a2fcc1e417270f9d16b5607f5b0ce7d675))
+
+
 ## v0.4.5 (2024-04-17)
 
 ### Chore
+
+* chore(release): 0.4.5
+
+Automatically generated by python-semantic-release ([`dc7e8e5`](https://github.com/adfinis/django-generic-api-permissions/commit/dc7e8e540c2f1318392f984a8d77c56bd8a99f7f))
 
 * chore: fix maintenance docs (#39) ([`9947377`](https://github.com/adfinis/django-generic-api-permissions/commit/99473779dca83ea5c4affe02f3625683e1b9e1c5))
 
