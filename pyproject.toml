@@ -34,7 +34,7 @@ django = ">=3.2"
 djangorestframework = "^3.14"
 
 [tool.poetry.dev-dependencies]
-black = "^23.12.1"
+black = "^24.4.2"
 ruff = "^0.4.6"
 
 [tool.poetry.group.djangorestframework-jsonapi]
