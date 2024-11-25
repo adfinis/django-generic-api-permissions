@@ -1,6 +1,7 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.urls import reverse
+from rest_framework.exceptions import PermissionDenied as DRFPermissionDenied
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -14,7 +15,7 @@ from generic_permissions.permissions import (
     object_permission_for,
     permission_for,
 )
-from tests.views import Test1ViewSet, Test2ViewSet
+from tests.views import Test1ViewSet, Test2ViewSet, TestBaseViewSet
 
 from .models import Model1, Model2
 
@@ -214,4 +215,22 @@ def test_deny_all_permission(
     with pytest.raises(PermissionDenied):
         Test1ViewSet(request=request, format_kwarg="json").check_object_permissions(
             request, tm1
+        )
+
+
+def test_base_permission(db, rf):
+    ObjectPermissionsConfig.register_handler_class(DenyAll)
+    PermissionsConfig.register_handler_class(DenyAll)
+
+    request = rf.patch("")
+    request.authenticators = None
+    request.data = {"text": "foo"}
+
+    # Make sure that the permission error is from DRF, not from the generic permissions
+    with pytest.raises(DRFPermissionDenied):
+        TestBaseViewSet(request=request, format_kwarg="json").check_permissions(request)
+
+    with pytest.raises(DRFPermissionDenied):
+        TestBaseViewSet(request=request, format_kwarg="json").check_object_permissions(
+            request, Model1.objects.create()
         )

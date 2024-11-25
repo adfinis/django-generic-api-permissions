@@ -23,9 +23,9 @@ class PermissionViewMixin:
         """
         Overwrite default implementation to check DGAP permissions.
         """
+        super().check_permissions(request)
         if request.method != "GET":
             self._check_permissions(request)
-        super().check_permissions(request)
 
     def _check_object_permissions(self, request, instance):
         """
@@ -43,9 +43,9 @@ class PermissionViewMixin:
         """
         Overwrite default implementation to check DGAP object permissions.
         """
+        super().check_object_permissions(request, instance)
         if request.method != "GET":
             self._check_object_permissions(request, instance)
-        super().check_object_permissions(request, instance)
 
 
 class BasePermission:
