@@ -1,6 +1,7 @@
 from functools import reduce
 from warnings import warn
 
+from django.conf import settings
 from rest_framework.relations import MANY_RELATION_KWARGS, ManyRelatedField
 from rest_framework.serializers import PrimaryKeyRelatedField
 
@@ -166,9 +167,10 @@ try:
         pass
 
 except ModuleNotFoundError:  # pragma: no cover
-    print(
-        "django-rest-framework-json-api is not installed. Skipping django-rest-framework-json-api related imports."
-    )
+    if settings.DEBUG:
+        print(
+            "django-rest-framework-json-api is not installed. Skipping django-rest-framework-json-api related imports."
+        )
 
 
 class BaseVisibility:  # pragma: no cover
