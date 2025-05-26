@@ -39,6 +39,17 @@ A custom visibility class could look like this:
 filter_queryset_for = VisibilitiesConfig.decorator
 
 
+def _should_bypass_field(instance, field_name: str) -> bool:
+    bypass_fields_settings = (
+        getattr(settings, "GENERIC_PERMISSIONS_BYPASS_VISIBILITIES", {}) or {}
+    )
+    bypass_fields = bypass_fields_settings.get(
+        f"{instance.Meta.app_label}.{type(instance).__name__}", []
+    )
+
+    return field_name in bypass_fields
+
+
 class VisibilityViewMixin:
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -51,6 +62,10 @@ class VisibilityViewMixin:
 class VisibilityManyRelatedField(ManyRelatedField):
     def get_attribute(self, instance):
         queryset = super().get_attribute(instance)
+
+        if _should_bypass_field(instance, self.field_name):
+            return queryset
+
         for handler in VisibilitiesConfig.get_handlers(queryset.model):
             queryset = handler(queryset, self.parent._context["request"])
 
@@ -111,6 +126,9 @@ class VisibilityRelatedFieldMixin:
     def get_attribute(self, instance):
         # ForeignKey
         model_instance = super().get_attribute(instance)
+
+        if _should_bypass_field(instance, self.field_name):
+            return model_instance
 
         if model_instance.pk is None:
             return None
