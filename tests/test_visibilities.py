@@ -304,3 +304,44 @@ def test_visibility_related_field_check(db):
     with pytest.raises(RuntimeWarning):
         serializer = WrongSerializer(model1)
         serializer.data  # noqa: B018
+
+
+@pytest.mark.parametrize(
+    "bypass_fields,expect_apple_many,expect_apple_one",
+    [
+        [{"tests.Model1": ["many"]}, True, False],
+        [{"nonexistent.Model1": ["many"]}, False, False],
+        [{"tests.Model1": []}, False, False],
+        [{"tests.Model1": ["model2"]}, False, True],
+        [{"tests.Model1": ["many", "model2"]}, True, True],
+        [None, False, False],
+    ],
+)
+def test_visibility_bypass_field(
+    db, admin_client, settings, bypass_fields, expect_apple_many, expect_apple_one
+):
+    class TestVisibility:
+        @filter_queryset_for(Model2)
+        def filter_queryset_for_model2(self, queryset, request):
+            return queryset.exclude(text="apple")
+
+    settings.GENERIC_PERMISSIONS_BYPASS_VISIBILITIES = bypass_fields
+    VisibilitiesConfig.clear_handlers()
+    VisibilitiesConfig.register_handler_class(TestVisibility)
+
+    model1 = Model1.objects.create(text="pear")
+    model2 = Model2.objects.create(text="apple")
+    model3 = Model2.objects.create(text="melon")
+    model1.model2 = model2
+    model1.save()
+    model1.many.add(model2)
+    model1.many.add(model3)
+
+    url = reverse("model1-detail", args=[model1.pk])
+    response = admin_client.get(url)
+
+    assert response.status_code == HTTP_200_OK
+    result = response.json()
+
+    assert (model2.pk in result["many"]) == expect_apple_many
+    assert bool(result["model2"]) == expect_apple_one
