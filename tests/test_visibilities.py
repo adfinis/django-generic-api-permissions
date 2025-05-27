@@ -315,6 +315,7 @@ def test_visibility_related_field_check(db):
         [{"tests.Model1": ["model2"]}, False, True],
         [{"tests.Model1": ["many", "model2"]}, True, True],
         [None, False, False],
+        [{"tests.Model1": "__all__"}, True, True],
     ],
 )
 def test_visibility_bypass_field(
