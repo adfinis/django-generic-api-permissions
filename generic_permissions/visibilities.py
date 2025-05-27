@@ -43,9 +43,16 @@ def _should_bypass_field(instance, field_name: str) -> bool:
     bypass_fields_settings = (
         getattr(settings, "GENERIC_PERMISSIONS_BYPASS_VISIBILITIES", {}) or {}
     )
+
+    meta = getattr(instance, "_meta", None) or getattr(instance, "Meta", None)
+    app_label = getattr(meta, "app_label", "")
     bypass_fields = bypass_fields_settings.get(
-        f"{instance.Meta.app_label}.{type(instance).__name__}", []
+        f"{app_label}.{type(instance).__name__}",
+        [],
     )
+
+    if bypass_fields == "__all__":
+        return True
 
     return field_name in bypass_fields
 

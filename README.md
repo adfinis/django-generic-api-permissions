@@ -105,12 +105,19 @@ class CustomRelationField(VisibilityRelatedFieldMixin):
 ```
 
 #### Bypassing visibilities for foreign keys for 1:n and n:m
-DGAP allows you to enforce visibility checks on foreign keys as well. Sometimes, you might want to bypass this, as it's not necessary. For example, if you have a "document" with multiple "versions" as a 1:n relationship, you don't want to filter the versions queryset again, as it conforms to the same rules as the documents (that you 've already filtered)
+
+DGAP allows you to enforce visibility checks on foreign keys as well. Sometimes, you might want to bypass this, as it's not always necessary. For example, if you have a "document" with multiple "versions" as a 1:n relationship, you don't want to filter the versions queryset again, as it conforms to the same rules as the documents (that you 've already filtered)
 
 To configure this, add the following key to your `settings.py`:
-`GENERIC_PERMISSIONS_BYPASS_VISIBILITIES={"my_app.Document": ["versions"]}`
 
-Prefix your model name with your app label to prevent collisions.
+```python
+GENERIC_PERMISSIONS_BYPASS_VISIBILITIES = {
+    "my_app.Document": ["versions"], # attribute name as defined on the model
+    "my_app.File": "__all__" # for all fields
+}
+```
+
+Only use `__all__` for testing or if you're sure that you are not accidentally exposing any related models.
 
 ### Permission subsystem
 
