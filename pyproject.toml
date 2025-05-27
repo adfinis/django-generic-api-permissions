@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-generic-api-permissions"
-version = "0.4.7"
+version = "1.0.0"
 description="Generic API permissions and visibilities for Django"
 authors = ["Adfinis <indo@adfinis.com>"]
 readme = "README.md"
