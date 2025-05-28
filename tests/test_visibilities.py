@@ -15,6 +15,7 @@ from generic_permissions.visibilities import (
 from .models import BaseModel, Model1, Model2
 
 
+@pytest.mark.parametrize("has_qs", [True, False])
 @pytest.mark.parametrize("detail", [True, False])
 @pytest.mark.parametrize("use_admin_client", [True, False])
 def test_visibility(
@@ -24,33 +25,52 @@ def test_visibility(
     client,
     detail,
     use_admin_client,
+    has_qs,
+    mocker,
 ):
     client = admin_client if use_admin_client else client
 
     class TestVisibility:
         @filter_queryset_for(Model1)
         def filter_queryset_for_document(self, queryset, request):
+            return self.visibility(queryset, request)
+
+        @classmethod
+        def visibility(cls, queryset, request):
             assert isinstance(request, Request)
             if request.user.username != "admin":
                 return queryset.none()
             return queryset.exclude(text="bar")
 
+    spy = mocker.spy(TestVisibility, "visibility")
+
     VisibilitiesConfig.register_handler_class(TestVisibility)
 
-    model1 = Model1.objects.create(text="foo")
-    Model1.objects.create(text="bar")
+    if has_qs:
+        model1_id = Model1.objects.create(text="foo").pk
+        Model1.objects.create(text="bar")
+    else:
+        model1_id = 1
 
     url = reverse("model1-list")
     if detail:
-        url = reverse("model1-detail", args=[model1.pk])
+        url = reverse("model1-detail", args=[model1_id])
     response = client.get(url)
-    if detail and not use_admin_client:
+
+    if has_qs:
+        assert spy.call_count == 1
+    else:
+        assert spy.call_count == 0
+
+    if detail and (not use_admin_client or not has_qs):
         assert response.status_code == HTTP_404_NOT_FOUND
         return
+
     assert response.status_code == HTTP_200_OK
     result = response.json()
+
     if not detail:
-        if use_admin_client:
+        if use_admin_client and has_qs:
             assert len(result) == 1
             assert result[0]["text"] == "foo"
         else:
@@ -217,24 +237,36 @@ def test_union_visibility_none(db, admin_client):
     assert len(admin_client.get(url).json()) == 0
 
 
+@pytest.mark.parametrize("has_qs", [True, False])
 @pytest.mark.parametrize("filter_relation", [True, False])
-def test_visibility_relation(db, admin_user, admin_client, filter_relation):
+def test_visibility_relation(
+    db, admin_user, admin_client, filter_relation, has_qs, mocker
+):
     class TestVisibility:
         @filter_queryset_for(Model2)
         def filter_queryset_for_document(self, queryset, request):
+            return self.visibility(queryset, request)
+
+        @classmethod
+        def visibility(cls, queryset, request):
             assert isinstance(request, Request)
             if filter_relation:
                 return queryset.exclude(text="apple")
             return queryset
+
+    spy = mocker.spy(TestVisibility, "visibility")
 
     VisibilitiesConfig.clear_handlers()
     VisibilitiesConfig.register_handler_class(TestVisibility)
 
     Model2.objects.create(text="none")
     model2 = Model2.objects.create(text="apple")
-    model1 = Model1.objects.create(text="pear", model2=model2)
-    model1.many.add(model2)
-    model1.save()
+
+    model1 = Model1.objects.create(text="pear", model2=model2 if has_qs else None)
+
+    if has_qs:
+        model1.many.add(model2)
+        model1.save()
 
     url = reverse("model1-detail", args=[model1.pk])
     response = admin_client.get(url)
@@ -242,9 +274,14 @@ def test_visibility_relation(db, admin_user, admin_client, filter_relation):
     assert response.status_code == HTTP_200_OK
     result = response.json()
 
+    if has_qs:
+        assert spy.call_count == 3  # many, explicit (m2m) and model2 (fk)
+    else:
+        assert spy.call_count == 0
+
     assert result["text"] == "pear"
 
-    if filter_relation:
+    if filter_relation or not has_qs:
         assert result["model2"] is None
         assert len(result["explicit"]) == 0
         assert len(result["many"]) == 0

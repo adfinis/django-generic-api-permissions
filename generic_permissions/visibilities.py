@@ -60,6 +60,10 @@ def _should_bypass_field(instance, field_name: str) -> bool:
 class VisibilityViewMixin:
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        if not queryset.exists():
+            return queryset
+
         for handler in VisibilitiesConfig.get_handlers(queryset.model):
             queryset = handler(queryset, self.request)
 
@@ -69,6 +73,9 @@ class VisibilityViewMixin:
 class VisibilityManyRelatedField(ManyRelatedField):
     def get_attribute(self, instance):
         queryset = super().get_attribute(instance)
+
+        if not queryset.exists():
+            return queryset
 
         if _should_bypass_field(instance, self.field_name):
             return queryset
