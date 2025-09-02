@@ -12,24 +12,20 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v5
-      with:
-        fetch-depth: 0
-
-    - name: Install poetry
-      run: pipx install poetry
-
-    - name: Setup python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-        cache: "poetry"
-
-    - name: Python Semantic Release
-      id: release
-      uses: python-semantic-release/python-semantic-release@v8.3.0
-      with:
-        github_token: ${{ secrets.GH_TOKEN }}
-
-    - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1      
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "poetry"
+      - name: Python Semantic Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v8.3.0
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
