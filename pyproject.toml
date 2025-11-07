@@ -34,7 +34,7 @@ djangorestframework = "^3.14"
 optional = true
 
 [tool.poetry.group.djangorestframework-jsonapi.dependencies]
-djangorestframework-jsonapi= ">=6.1,<8.0"
+djangorestframework-jsonapi= ">=6.1,<9.0"
 
 [tool.poetry.group.dev.dependencies]
 ipdb = "0.13.13"
