@@ -42,7 +42,7 @@ def test_permission(
 
     class CustomPermission:
         @permission_for(Model1)
-        def has_permission_for_document(self, request):
+        def has_permission_for_document(self, request, *args, **kwargs):
             if (
                 hasattr(request, "user")
                 and request.user.username == "admin"
@@ -52,7 +52,9 @@ def test_permission(
             return False
 
         @object_permission_for(Model1)
-        def has_object_permission_for_document(self, request, instance):
+        def has_object_permission_for_document(
+            self, request, instance, *args, **kwargs
+        ):
             assert isinstance(instance, Model1)
             if hasattr(request, "user") and request.user.username == "admin":
                 return True
@@ -92,11 +94,15 @@ def test_permission(
 def test_custom_permission_override_has_permission_with_duplicates():
     class CustomPermission:
         @permission_for(Model1)
-        def has_permission_for_custom_mutation(self, request):  # pragma: no cover
+        def has_permission_for_custom_mutation(
+            self, request, *args, **kwargs
+        ):  # pragma: no cover
             return False
 
         @permission_for(Model1)
-        def has_permission_for_custom_mutation_2(self, request):  # pragma: no cover
+        def has_permission_for_custom_mutation_2(
+            self, request, *args, **kwargs
+        ):  # pragma: no cover
             return False
 
     with pytest.raises(ImproperlyConfigured):
@@ -107,13 +113,13 @@ def test_custom_permission_override_has_object_permission_with_duplicates():
     class CustomPermission:
         @object_permission_for(Model1)
         def has_object_permission_for_custom_mutation(
-            self, request, instance
+            self, request, instance, *args, **kwargs
         ):  # pragma: no cover
             return False
 
         @object_permission_for(Model1)
         def has_object_permission_for_custom_mutation_2(
-            self, request, instance
+            self, request, instance, *args, **kwargs
         ):  # pragma: no cover
             return False
 
@@ -125,7 +131,7 @@ def test_custom_permission_override_has_permission_with_multiple_models(admin_cl
     class CustomPermission:
         @permission_for(Model1)
         @permission_for(Model2)
-        def has_permission_for_both_mutations(self, request):
+        def has_permission_for_both_mutations(self, request, *args, **kwargs):
             return False
 
     PermissionsConfig.register_handler_class(CustomPermission)
@@ -141,7 +147,9 @@ def test_custom_permission_override_has_object_permission_with_multiple_mutation
 ):
     class CustomPermission:
         @object_permission_for(Model1)
-        def has_object_permission_for_both_mutations(self, request, instance):
+        def has_object_permission_for_both_mutations(
+            self, request, instance, *args, **kwargs
+        ):
             return False
 
     ObjectPermissionsConfig.register_handler_class(CustomPermission)
@@ -159,12 +167,14 @@ def test_custom_permission_fallback_to_true(
 ):
     class CustomPermission:
         @permission_for(Model2)
-        def has_permission_for_document(self, request):  # pragma: no cover
+        def has_permission_for_document(
+            self, request, *args, **kwargs
+        ):  # pragma: no cover
             return False
 
         @object_permission_for(Model2)
         def has_object_permission_for_both_mutations(
-            self, request, instance
+            self, request, instance, *args, **kwargs
         ):  # pragma: no cover
             return False
 
@@ -187,11 +197,13 @@ def test_deny_all_permission(
 ):
     class CustomPermission(DenyAll):
         @permission_for(Model2)
-        def has_permission_for_document(self, request):
+        def has_permission_for_document(self, request, *args, **kwargs):
             return True
 
         @object_permission_for(Model2)
-        def has_object_permission_for_both_mutations(self, request, instance):
+        def has_object_permission_for_both_mutations(
+            self, request, instance, *args, **kwargs
+        ):
             return True
 
     tm1 = Model1.objects.create()
@@ -234,3 +246,31 @@ def test_base_permission(db, rf):
         TestBaseViewSet(request=request, format_kwarg="json").check_object_permissions(
             request, Model1.objects.create()
         )
+
+
+def test_permission_action(db, admin_client, mocker):
+    class CustomPermission:
+        @permission_for(Model1)
+        def has_permission(self, request, *args, action):
+            return action == "export"
+
+    PermissionsConfig.register_handler_class(CustomPermission)
+
+    spy = mocker.spy(CustomPermission, "has_permission")
+
+    create_response = admin_client.post(
+        reverse("model1-list"), data={"text": "foo"}, format="json"
+    )
+    assert create_response.status_code == HTTP_403_FORBIDDEN
+    assert spy.call_args_list[0].kwargs["action"] == "create"
+
+    m1 = Model1.objects.create()
+    delete_response = admin_client.delete(
+        reverse("model1-detail", args=[m1.pk]), format="json"
+    )
+    assert delete_response.status_code == HTTP_403_FORBIDDEN
+    assert spy.call_args_list[1].kwargs["action"] == "destroy"
+
+    export_response = admin_client.post(reverse("model1-export"), format="json")
+    assert export_response.status_code == HTTP_204_NO_CONTENT
+    assert spy.call_args_list[2].kwargs["action"] == "export"

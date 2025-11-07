@@ -16,7 +16,7 @@ class PermissionViewMixin:
         Raise PermissionDenied if configured permissions do not allow accesss to the model.
         """
         for handler in PermissionsConfig.get_handlers(self.get_serializer().Meta.model):
-            if not handler(request):
+            if not handler(request, action=getattr(self, "action", None)):
                 raise PermissionDenied()
 
     def check_permissions(self, request):
@@ -36,7 +36,7 @@ class PermissionViewMixin:
         for handler in ObjectPermissionsConfig.get_handlers(
             self.get_serializer().Meta.model
         ):
-            if not handler(request, instance):
+            if not handler(request, instance, action=getattr(self, "action", None)):
                 raise PermissionDenied()
 
     def check_object_permissions(self, request, instance):
@@ -62,19 +62,19 @@ class BasePermission:
 
 class AllowAny:
     @permission_for(object)
-    def default_permission(self, request):
+    def default_permission(self, request, *args, **kwargs):
         return True
 
     @object_permission_for(object)
-    def default_object_permission(self, request, instance):
+    def default_object_permission(self, request, instance, *args, **kwargs):
         return True
 
 
 class DenyAll:
     @permission_for(object)
-    def default_permission(self, request):
+    def default_permission(self, request, *args, **kwargs):
         return False
 
     @object_permission_for(object)
-    def default_object_permission(self, request, instance):
+    def default_object_permission(self, request, instance, *args, **kwargs):
         return False
