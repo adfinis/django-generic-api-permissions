@@ -229,10 +229,15 @@ There are two types of methods in the permissions system:
 - `permission_for`: Marks methods that define generic access permissions for a
   given model. They are always checked first.
   Those methods will receive one positional argument, namely the `request` object
+  and one named argument `action` which contains the current [DRF view action][drf-actions] as string.
 - `object_permission_for`: Define whether access to a specific object shall be
   granted. This called for all other operations **except** creation.
   These methods will receive two positional arguments: First, the `request`
   object, and second, the model instance that is being accessed in the request.
+  In addition to that, it will receive one named argument `action` which
+  contains the current [DRF view action][drf-actions] as string.
+
+[drf-actions]: https://www.django-rest-framework.org/api-guide/viewsets/#viewset-actions
 
 The following example carries on the Blog concept from above. We want only
 admins to edit/update blog posts, and authenticated users to comment.
@@ -249,23 +254,27 @@ You can find more information about the `request` object in the
 from generic_permissions.permissions import permission_for, object_permission_for
 from my_app.models import Post, Comment
 
+
 class OnlyAuthenticated:
     @permission_for(object)
-    def has_permission_default(self, request):
+    def has_permission_default(self, request, *args, **kwargs):
         # No permission is granted for any non-authenticated users
         return request.user.is_authenticated
 
+
 class BlogPermissions:
     @permission_for(Comment)
-    def has_permission_for_comment(self, request):
+    def has_permission_for_comment(self, request, *args, **kwargs):
         # comments can be added, but not updated
-        return request.method == 'POST'
+        return request.method == "POST"
+
     @permission_for(Post)
-    def has_permission_for_post(self, request, instance):
+    def has_permission_for_post(self, request, instance, *args, **kwargs):
         # Only admins can work on Posts
-        return 'admin' in request.user.groups
+        return "admin" in request.user.groups
+
     @object_permission_for(Post)
-    def has_object_permission_for_post(self, request, instance):
+    def has_object_permission_for_post(self, request, instance, *args, **kwargs):
         # Of the admins, changing a Post is only allowed to the author.
         return instance.author == request.user
 ```
