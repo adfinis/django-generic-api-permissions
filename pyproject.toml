@@ -44,7 +44,7 @@ pytest-cov = "7.0.0"
 pytest-django = "4.11.1"
 pytest-mock = "3.15.1"
 pytest-randomly = "4.0.1"
-ruff = "0.14.4"
+ruff = "0.14.5"
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "I", "C4", "C90"]
