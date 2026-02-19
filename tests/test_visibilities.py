@@ -383,3 +383,16 @@ def test_visibility_bypass_field(
 
     assert (model2.pk in result["many"]) == expect_apple_many
     assert bool(result["model2"]) == expect_apple_one
+
+
+def test_visibility_no_handlers(db, admin_client, django_assert_num_queries):
+    VisibilitiesConfig.clear_handlers()
+
+    model2 = Model2.objects.create(text="pear")
+
+    # Check that there is no preliminary .exists() query run before the actual
+    # query as there is no handler for this model
+    with django_assert_num_queries(1):
+        response = admin_client.get(reverse("model2-detail", args=[model2.pk]))
+
+    assert response.status_code == HTTP_200_OK
