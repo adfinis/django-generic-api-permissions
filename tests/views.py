@@ -18,7 +18,7 @@ class BaseDenyAll(BasePermission):
         return False
 
 
-class Test1ViewSet(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
+class Dummy1ViewSet(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
     serializer_class = serializers.TestModel1Serializer
     queryset = models.Model1.objects.all()
 
@@ -27,12 +27,12 @@ class Test1ViewSet(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class Test2ViewSet(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
+class Dummy2ViewSet(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
     serializer_class = serializers.TestModel2Serializer
     queryset = models.Model2.objects.all()
 
 
-class TestBaseViewSet(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
+class DummyBaseViewSet(PermissionViewMixin, VisibilityViewMixin, ModelViewSet):
     permission_classes = [BaseDenyAll]
     serializer_class = serializers.TestModel1Serializer
     queryset = models.Model1.objects.all()

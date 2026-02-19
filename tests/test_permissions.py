@@ -15,7 +15,7 @@ from generic_permissions.permissions import (
     object_permission_for,
     permission_for,
 )
-from tests.views import Test1ViewSet, Test2ViewSet, TestBaseViewSet
+from tests.views import Dummy1ViewSet, Dummy2ViewSet, DummyBaseViewSet
 
 from .models import Model1, Model2
 
@@ -185,8 +185,8 @@ def test_custom_permission_fallback_to_true(
     request = rf.patch("")
     request.data = {"text": "foo"}
 
-    Test1ViewSet(request=request, format_kwarg="json")._check_permissions(request)
-    Test1ViewSet(request=request, format_kwarg="json").check_object_permissions(
+    Dummy1ViewSet(request=request, format_kwarg="json")._check_permissions(request)
+    Dummy1ViewSet(request=request, format_kwarg="json").check_object_permissions(
         request, tm1
     )
 
@@ -215,17 +215,17 @@ def test_deny_all_permission(
     request.data = {"text": "foo"}
 
     # Model2 access should be granted by above permission class
-    Test2ViewSet(request=request, format_kwarg="json")._check_permissions(request)
-    Test2ViewSet(request=request, format_kwarg="json").check_object_permissions(
+    Dummy2ViewSet(request=request, format_kwarg="json")._check_permissions(request)
+    Dummy2ViewSet(request=request, format_kwarg="json").check_object_permissions(
         request, tm2
     )
 
     # Model1 access should "bubble up" to the DenyAll base class and be denied
     with pytest.raises(PermissionDenied):
-        Test1ViewSet(request=request, format_kwarg="json")._check_permissions(request)
+        Dummy1ViewSet(request=request, format_kwarg="json")._check_permissions(request)
 
     with pytest.raises(PermissionDenied):
-        Test1ViewSet(request=request, format_kwarg="json").check_object_permissions(
+        Dummy1ViewSet(request=request, format_kwarg="json").check_object_permissions(
             request, tm1
         )
 
@@ -240,10 +240,12 @@ def test_base_permission(db, rf):
 
     # Make sure that the permission error is from DRF, not from the generic permissions
     with pytest.raises(DRFPermissionDenied):
-        TestBaseViewSet(request=request, format_kwarg="json").check_permissions(request)
+        DummyBaseViewSet(request=request, format_kwarg="json").check_permissions(
+            request
+        )
 
     with pytest.raises(DRFPermissionDenied):
-        TestBaseViewSet(request=request, format_kwarg="json").check_object_permissions(
+        DummyBaseViewSet(request=request, format_kwarg="json").check_object_permissions(
             request, Model1.objects.create()
         )
 
