@@ -408,14 +408,14 @@ testing = ["docopt", "pytest"]
 
 [[package]]
 name = "pdbpp"
-version = "0.11.7"
+version = "0.12.0.post1"
 description = "pdb++, a drop-in replacement for pdb"
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "pdbpp-0.11.7-py3-none-any.whl", hash = "sha256:51916b63693898cf4881b36b4501c83947758d73f582f1f84893662b163bdb75"},
-    {file = "pdbpp-0.11.7.tar.gz", hash = "sha256:cb6604ac31a35ed0f2a29650a8c022b26284620be3e01cfd41b683b91da1ff14"},
+    {file = "pdbpp-0.12.0.post1-py3-none-any.whl", hash = "sha256:8c62acd6adaa02f620d7d9cff689208a28019b6c05e6b894318f313e61fb1dc7"},
+    {file = "pdbpp-0.12.0.post1.tar.gz", hash = "sha256:cace9951d7414fe651141d240ab20e4509c8f97d20f7b142386d1bd1bb182d18"},
 ]
 
 [package.dependencies]
@@ -423,7 +423,7 @@ fancycompleter = ">=0.11.0"
 pygments = "*"
 
 [package.extras]
-testing = ["ipython", "pexpect", "pytest", "pytest-cov"]
+testing = ["coverage (<7.11.1)", "ipython", "pexpect", "pytest", "pytest-cov"]
 
 [[package]]
 name = "pexpect"
@@ -750,4 +750,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "f2c698ea80330ea8241a3162cc4f720872f08f2486f956aaefe0a5a4ee260dc4"
+content-hash = "f0748473108975a397905e7d6a8c6f760997cf22f31fa77c5c41a799c86554d8"
