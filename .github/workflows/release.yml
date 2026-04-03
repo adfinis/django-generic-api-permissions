@@ -24,7 +24,7 @@ jobs:
           cache: "poetry"
       - name: Python Semantic Release
         id: release
-        uses: python-semantic-release/python-semantic-release@dcda908a65a767d51fba8fd2e38bef1740b0e5c9 # v8.3.0
+        uses: python-semantic-release/python-semantic-release@d38d71ef2ae2b3c34066557ddb822385c1730c7f # v8.3.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish package distributions to PyPI
